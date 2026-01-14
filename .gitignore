@@ -1,0 +1,16 @@
+# OS files
+.DS_Store
+
+# EDA Tool Work Directories & Logs
+HDL_LIBRARIES/
+inverter/
+outputs_fc/
+qor_data/
+rpts_fc/
+*.log
+*.svf
+*.ems
+*.txt
+*.csv
+*.pvl
+*.mr
