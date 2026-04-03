@@ -1,11 +1,15 @@
-module inverter(
-                input      clk,
-                input      A,
-                output reg Z
-                );
+module inverter (
+                 input wire  clk,
+                 input wire  A,
+                 output wire Z
+                 );
+
+   reg Z_reg;
 
    always @(posedge clk) begin
-     Z <= ~A;
+     Z_reg <= ~A;
    end
+
+   assign Z = Z_reg;
 
 endmodule

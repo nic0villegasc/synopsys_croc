@@ -9,7 +9,7 @@ set DESIGN_NAME 		"inverter" ; # Top module name
 set LIBRARY_SUFFIX		"" ;
 set DESIGN_LIBRARY 		"${DESIGN_NAME}${LIBRARY_SUFFIX}" ;
 
-set TECHLIB_DATA_DIR		"/home/usuario21/sky130" ; # PDK root folder
+set TECHLIB_DATA_DIR		"/home1/usuario21/sky130" ; # PDK root folder
 
 ##########################################################################################
 ## Variables for design prep which are used by init_design.tcl
@@ -58,11 +58,11 @@ set DESIGN_LIBRARY_SCALE_FACTOR	""	; # Default
 ### 3. Verilog, dc inputs, upf, mcmm, timing, etc 
 ##################################################
 
-set RTL_SOURCE_FILES		[list "/home/usuario21/nvc/FC-RM_T-2022.03/rtl/inverter.v"] ;
+set RTL_SOURCE_FILES		[list "/home1/usuario21/nvc/croc_synopsys/rtl/inverter.v"] ;
 set FC_RTL_READ_SCRIPT		${DESIGN_NAME}.FC.read_design.tcl ;# Default
 set FM_RTL_READ_SCRIPT		${DESIGN_NAME}.FM.read_design.tcl ;# Default
 
-set UPF_MODE      		"none" ; # We don't have UPF file
+set UPF_MODE      		"prime" ; # We don't have UPF file
 
 set VERILOG_NETLIST_FILES	"";
 
@@ -72,7 +72,7 @@ set UPF_UPDATE_SUPPLY_SET_FILE	""	;
 
 # IMPORTANT: Fill if necessary
 set TCL_MCMM_SETUP_FILE		"mcmm_setup.tcl"	;
-set TCL_PARASITIC_SETUP_FILE	""  ;
+set TCL_PARASITIC_SETUP_FILE	"parasitic_setup.tcl"  ;
 
 set UNIQUIFY_OPTIONS			"-force" ;# Default
 
@@ -91,7 +91,7 @@ set DEF_FLOORPLAN_FILES			"" ;
 
 set DEF_READ_OPTIONS			"-add_def_only_objects all" ; # Default
 set DEF_RESOLVE_PG_NETS			true ; # Default
-set TCL_ADDITIONAL_FLOORPLAN_FILE 	"floorplan.tcl" ;
+set TCL_ADDITIONAL_FLOORPLAN_FILE 	"" ;
 
 set SITE_SYMMETRY_LIST			"" ;
 
@@ -141,7 +141,7 @@ set SAIF_FILE_TARGET_INSTANCE		""
 set OPTIMIZATION_FREEZE_PORT_LIST 	""
 
 # -------------------------------------------------------------------------
-# Library Cell Purpose (Critical for Sky130)
+# Library Cell Purpose
 # -------------------------------------------------------------------------
 set TCL_MULTI_VT_CONSTRAINT_FILE	"multi_vth_constraint_script.tcl"
 set TCL_LIB_CELL_PURPOSE_FILE 		"set_lib_cell_purpose.tcl"

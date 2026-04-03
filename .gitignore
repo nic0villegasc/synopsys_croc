@@ -1,16 +1,28 @@
 # OS files
 .DS_Store
 
-# EDA Tool Work Directories & Logs
+# Synopsys FC Working Directories & Databases
 HDL_LIBRARIES/
-inverter/
+logs_fc/
 outputs_fc/
 qor_data/
 rpts_fc/
+compare_qor_data/
+legalizer_debug_plots/
+
+# Project-specific working directory (Contains your compiled NDM design databases)
+inverter/
+
+# EDA Tool Outputs, Logs, & Temp Files
 *.log
+fc_output.txt
+lm_output.txt
 *.svf
 *.ems
-*.txt
 *.csv
 *.pvl
 *.mr
+*.err
+
+# Avoid committing large compressed output databases/netlists (like those inside outputs_fc/)
+*.gz
