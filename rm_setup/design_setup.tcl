@@ -85,8 +85,7 @@ set TCL_PVT_CONFIGURATION_FILE		"" ;
 ##################################################
 ### 4. DEF, floorplan, placement constraints, etc 
 ##################################################
-# We don't have a floorplan yet. Add later if you save a design.
-set TCL_FLOORPLAN_FILE			"" ;
+set TCL_FLOORPLAN_FILE			"floorplan.tcl";
 set DEF_FLOORPLAN_FILES			"" ;
 
 set DEF_READ_OPTIONS			"-add_def_only_objects all" ; # Default
