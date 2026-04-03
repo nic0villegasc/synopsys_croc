@@ -28,10 +28,7 @@ set EARLY_DATA_CHECK_POLICY	"none" ; # Default
 ### 1. Reference libraries
 ##################################################
 # Using pre-compiled NDM libraries
-set REFERENCE_LIBRARY 		[list \
-                               ${TECHLIB_DATA_DIR}/lib/sky130_fd_sc_hd/ndm/sky130_fd_sc_hd.ndm \
-                               ${TECHLIB_DATA_DIR}/lib/sky130_fd_io/ndm/sky130_fd_io.ndm \
-                              ];
+set REFERENCE_LIBRARY 		"./sky130_fd_sc_hd.ndm";
 
 set COMPRESS_LIBS               "false" ; # Default
 set LIBRARY_CONFIGURATION_FLOW	false	; # We already have NDM libraries
