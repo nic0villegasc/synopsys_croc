@@ -11,7 +11,7 @@ compare_qor_data/
 legalizer_debug_plots/
 
 # Project-specific working directory (Contains your compiled NDM design databases)
-inverter/
+croc_chip/
 
 # EDA Tool Outputs, Logs, & Temp Files
 *.log

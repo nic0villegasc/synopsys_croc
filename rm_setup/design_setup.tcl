@@ -4,7 +4,7 @@
 # Copyright (C) 2014-2022 Synopsys, Inc. All rights reserved.
 ##########################################################################################
 
-set DESIGN_NAME 		"inverter" ; # Top module name
+set DESIGN_NAME 		"croc_chip" ; # Top module name
 
 set LIBRARY_SUFFIX		"" ;
 set DESIGN_LIBRARY 		"${DESIGN_NAME}${LIBRARY_SUFFIX}" ;
@@ -20,7 +20,7 @@ set INIT_DESIGN_INPUT 		"RTL"
 set INIT_DESIGN_INPUT_LIBRARY 	"" ; # Not needed for RTL flow
 set INIT_DESIGN_INPUT_BLOCK_NAME "" ; # Not needed for RTL flow
 
-set RTL_SOURCE_FORMAT		verilog ;
+set RTL_SOURCE_FORMAT		script ;
 
 set EARLY_DATA_CHECK_POLICY	"none" ; # Default
 
@@ -55,8 +55,8 @@ set DESIGN_LIBRARY_SCALE_FACTOR	""	; # Default
 ### 3. Verilog, dc inputs, upf, mcmm, timing, etc 
 ##################################################
 
-set RTL_SOURCE_FILES		[list "/home1/usuario21/nvc/croc_synopsys/rtl/inverter.v"] ;
-set FC_RTL_READ_SCRIPT		${DESIGN_NAME}.FC.read_design.tcl ;# Default
+set RTL_SOURCE_FILES		  "" ;
+set FC_RTL_READ_SCRIPT		"read_croc.tcl" ;
 set FM_RTL_READ_SCRIPT		${DESIGN_NAME}.FM.read_design.tcl ;# Default
 
 set UPF_MODE      		"prime" ; # We don't have UPF file
