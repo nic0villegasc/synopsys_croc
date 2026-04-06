@@ -9,7 +9,7 @@ set DESIGN_NAME 		"croc_chip" ; # Top module name
 set LIBRARY_SUFFIX		"" ;
 set DESIGN_LIBRARY 		"${DESIGN_NAME}${LIBRARY_SUFFIX}" ;
 
-set TECHLIB_DATA_DIR		"/home1/usuario21/sky130" ; # PDK root folder
+set TECHLIB_DATA_DIR		"/home1/usuario21/gf180/pdk_synopsys" ; # PDK root folder
 
 ##########################################################################################
 ## Variables for design prep which are used by init_design.tcl
@@ -28,21 +28,29 @@ set EARLY_DATA_CHECK_POLICY	"none" ; # Default
 ### 1. Reference libraries
 ##################################################
 # Using pre-compiled NDM libraries
-set REFERENCE_LIBRARY 		"./sky130_fd_sc_hd.ndm";
+set REFERENCE_LIBRARY 		[list \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_sc_mcu7t5v0.ndm" \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_io.ndm" \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_ip_sram__sram128x8m8wm1.ndm" \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_ip_sram__sram256x8m8wm1.ndm" \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_ip_sram__sram512x8m8wm1.ndm" \
+                               "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_ip_sram__sram64x8m8wm1.ndm" \
+                              ] ;
 
 set COMPRESS_LIBS               "false" ; # Default
 set LIBRARY_CONFIGURATION_FLOW	false	; # We already have NDM libraries
 
 # Using Typical Corner
-set LINK_LIBRARY		[list \
-                         ${TECHLIB_DATA_DIR}/lib/sky130_fd_sc_hd/db_nldm/sky130_fd_sc_hd__tt_025C_1v80.db \
-                         ${TECHLIB_DATA_DIR}/lib/sky130_fd_io/db_nldm/sky130_fd_io__top_gpiov2_tt_tt_025C_1v80.db \
-                        ];
+set LINK_LIBRARY [list \
+                      "* " \
+                      "${TECHLIB_DATA_DIR}/db/gf180mcu_fd_sc_mcu7t5v0__tt_025C_5v00.db" \
+                      "${TECHLIB_DATA_DIR}/db/gf180mcu_fd_io__tt_025C_5v00.db" \
+                     ] ;
 
 ##################################################
 ### 2. Tech files and setup
 ##################################################
-set TECH_FILE 			"${TECHLIB_DATA_DIR}/lib/sky130_fd_sc_hd/tech/milkyway/sky130_fd_sc_hd.tf"; # Main tech file
+set TECH_FILE 			"${TECHLIB_DATA_DIR}/tech/gf180nm_mcu_5LM_1TM_11K_7t_mw.tf"; # Main tech file
 set TECH_LIB			""	; # We used TECH_FILE
 
 set TECH_LIB_INCLUDES_TECH_SETUP_INFO true ; # Default, ignored
@@ -145,13 +153,13 @@ set TCL_LIB_CELL_PURPOSE_FILE 		"set_lib_cell_purpose.tcl"
 ## Below are set_lib_cell_purpose.tcl specific variables.
 # These patterns tell Fusion Compiler which cells to use for what task.
 
-# Sky130 Tie Cells are usually named "sky130_fd_sc_hd__conb_1"
+# gf180mcu Tie Cells are usually named "gf180mcu_fd_sc_mcu7t5v0__conb_1"
 set TIE_LIB_CELL_PATTERN_LIST 		"*conb*"
 
 # Standard hold fixing buffers
 set HOLD_FIX_LIB_CELL_PATTERN_LIST 	"*buf* *inv*"
 
-# Sky130 Clock Buffers usually have "clkbuf" in the name.
+# gf180mcu Clock Buffers usually have "clkbuf" in the name.
 # We also include standard buffers "*buf*" to give the tool flexibility if needed.
 set CTS_LIB_CELL_PATTERN_LIST 		"*clkbuf* *buf*"
 
@@ -161,7 +169,7 @@ set CTS_ONLY_LIB_CELL_PATTERN_LIST 	""
 set PREROUTE_CTS_PRIMARY_CORNER		""
 set TCL_USER_MSCTS_MESH_ROUTING_SCRIPT 	""
 
-set TCL_ANTENNA_RULE_FILE		"" ;# Antenna rules are usually inside the Sky130 .tf file.
+set TCL_ANTENNA_RULE_FILE		"${TECHLIB_DATA_DIR}/tech/gf180mcu_antenna_rules_5LM_1TM_11K.tcl" ;
 
 set SWITCH_CONNECTIVITY_FILE    	""
 
@@ -207,8 +215,8 @@ set INCR_ROUTE_DETAIL_MAX_ITERATIONS	""
 ## Variables for chip finishing related settings (Used by chip_finish.tcl)
 ##########################################################################################
 ## Std cell filler and decap cells used by chip_finish step and post ECO refill in timing_eco step
-set CHIP_FINISH_METAL_FILLER_PREFIX 	"sky130_fd_sc_hd__decap_"
-set CHIP_FINISH_NON_METAL_FILLER_PREFIX "sky130_fd_sc_hd__fill_"
+set CHIP_FINISH_METAL_FILLER_PREFIX 	"gf180mcu_fd_sc_mcu7t5v0__decap_" 
+set CHIP_FINISH_NON_METAL_FILLER_PREFIX "gf180mcu_fd_sc_mcu7t5v0__fill_"
 
 ## Signal EM
 set CHIP_FINISH_SIGNAL_EM_CONSTRAINT_FORMAT "ITF" ;# Specify signal EM constraint format: ITF | ALF; string is uppercase and ITF is default
@@ -345,7 +353,7 @@ set REDHAWK_USE_FC_POWER                false;# Optional. Set to true to use ICC
 set REDHAWK_ANALYSIS_NETS 		"" ;# Required. Specify the list of power and ground nets in pairs and in separate lines for the analysis;
 					   ;# for example, "VDD1 VSS1 VDD2 VSS2 VDD3 VSS3", where VDD* are power nets and VSS* are ground nets.
 
-set REDHAWK_LAYER_MAP_FILE              "" ;# Optional. The file include process layer name and LEF layer name
+set REDHAWK_LAYER_MAP_FILE              "${TECHLIB_DATA_DIR}/tech/gf180nm_mcu_5LM_1TM_11K_icc2gds.layermap" ;
 
 set REDHAWK_TECH_FILE 			"" ;# Required. Apache Technology File
 set REDHAWK_MACROS 			"" ;# Optional. List of Macro names and macro directories in pairs and in separate lines;
