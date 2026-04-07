@@ -1,85 +1,46 @@
 # -----------------------------------------------------------------------------
-# All Rights Reserved.
-# Copyright 2025 North Carolina State University
-#
-# This file was created at the North Carolina State University.
-# It is provided "as is" without warranty of any kind, express or implied,
-# including but not limited to correctness or fitness for a particular purpose.
-#
-# Authors:
-#   W. Shepherd Pitts, PhD (NCSU)  wspitts2@ncsu.edu
+# Croc SoC Physical Design Flow
+# Author: Nicolás Villegas - Universidad de los Andes, Chile
+# Description: Unified Fusion Compiler (FC) RTL-to-GDS Makefile
 # -----------------------------------------------------------------------------
 
-# ==============================================================================
-# Fusion Compiler + ICV LVS/DRC unified Makefile
-# ==============================================================================
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
 .DELETE_ON_ERROR:
 
 # ------------------------------------------------------------------------------
-# Paths
+# Paths (Hardcoded for ease of use, replacing environment variables)
 # ------------------------------------------------------------------------------
-GF180MCU_SNPS      ?= $(realpath ../)
-export GF180MCU_SNPS
+# Update this path to where your GF180MCU PDK is located on your local machine
+PDK_ROOT           := /mnt/designkits/gf180MCU/dk_open
+GF180MCU_PDK_DIR   := $(PDK_ROOT)/share/pdk/gf180mcuD
 
-GF180MCU_PDK_DIR   ?= ${OPENPDKS_DIR_BASE}/share/pdk/gf180mcuD
-ICV_LVS            ?= $(PDK_DIR)/LVS_ICV/LVS/ICV
-ICV_DRC            ?= $(PDK_DIR)/DRC_ICV
-
-# Runsets
-LVS_RUN_SET        ?= cmos018hv.3p3.6v.lvs.rs
-DRC_RUN_SET        ?= gf180mcu_drc.rs
-FILL_RUN_SET       ?= gf180mcu_fill.rs
-
-# CDL libraries
-STDCELLS_CDL       ?= $(GF180MCU_PDK_DIR)/libs.ref/gf180mcu_fd_sc_mcu7t5v0/cdl/gf180mcu_fd_sc_mcu7t5v0.cdl
-IO_CDL             ?= $(GF180MCU_PDK_DIR)/libs.ref/gf180mcu_fd_io/cdl/gf180mcu_fd_io.cdl
-UNIT_CDL           ?= $(ICV_LVS)/unit.cdl
-
-# Design
-TOP                ?= top
-RTL_SV             ?= $(TOP).sv
-DESIGN_VERILOG     ?= work/$(TOP).v
-GDS                ?= work/$(TOP).gds
-WORK_DIR           ?= synopsys_custom
-WORK_LVS_DIR       ?= $(WORK_DIR)/$(TOP).icv.lvs
-WORK_DRC_DIR       ?= $(WORK_DIR)/$(TOP).icv.drc
-
-# Fill-specific directories
-FILL_DIR           ?= fill
-WORK_FILL_DIR      ?= $(FILL_DIR)/$(TOP).icv.fill
-WORK_FILL_LVS_DIR  ?= $(FILL_DIR)/$(TOP).icv.fill.lvs
-WORK_FILL_DRC_DIR  ?= $(FILL_DIR)/$(TOP).icv.fill.drc
-
-# Derived
-NETTRAN_CDL        := work/$(TOP)_lvs_merged.cdl
+# ------------------------------------------------------------------------------
+# Design Configuration
+# ------------------------------------------------------------------------------
+TOP                := croc_chip
+WORK_DIR           := work
 
 .DEFAULT_GOAL := help
 
 # ------------------------------------------------------------------------------
-# Utilities
+# Fusion Compiler dynamic step rules (from scripts/0*_*.tcl)
 # ------------------------------------------------------------------------------
-define require_tool
-	@command -v $(1) >/dev/null 2>&1 || { echo "Error: missing tool '$(1)' in PATH"; exit 127; }
-endef
-
-# ------------------------------------------------------------------------------
-# Fusion Compiler step rules (from scripts/0*_*.tcl)
-# ------------------------------------------------------------------------------
+# This block automatically reads any TCL file in scripts/ that starts with a number 
+# (e.g., 01_read_rtl.tcl, 02_floorplan.tcl) and creates a make target for it.
 define MAKE_FC_RULE
 $2: $3
-	mkdir -p work && cd work && fc_shell -batch -f ../$1 | tee ../work/$2.log
+	mkdir -p $(WORK_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(WORK_DIR)/$2.log
 
-open_$2: work/design.dlib/$2
-	cd work && fc_shell -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
+open_$2: $(WORK_DIR)/design.dlib/$2
+	cd $(WORK_DIR) && fc_shell -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
-gui_$2: work/design.dlib/$2
-	cd work && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
+gui_$2: $(WORK_DIR)/design.dlib/$2
+	cd $(WORK_DIR) && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
-work/design.dlib/$2: $3
-	mkdir -p work && cd work && fc_shell -batch -f ../$1 | tee ../work/$2.log
+$(WORK_DIR)/design.dlib/$2: $3
+	mkdir -p $(WORK_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(WORK_DIR)/$2.log
 endef
 
 TCL_FILES = $(sort $(wildcard scripts/0*_*.tcl))
@@ -88,190 +49,47 @@ DEPENDENCY :=
 $(foreach file,$(TCL_FILES),\
   $(eval base := $(shell echo $(notdir $(file)) | sed -E 's/^[0-9]+_(.*)\.tcl/\1/'))\
   $(eval $(call MAKE_FC_RULE,$(file),$(base),$(DEPENDENCY)))\
-  $(eval DEPENDENCY := work/design.dlib/$(base))\
+  $(eval DEPENDENCY := $(WORK_DIR)/design.dlib/$(base))\
 )
 
 # ------------------------------------------------------------------------------
-# Finish step and exports
-# ------------------------------------------------------------------------------
-.PHONY: finish
-finish: work/design.dlib/finish
-
-$(DESIGN_VERILOG) $(GDS): finish
-	@echo "[FC] Fusion Compiler finish step complete."
-	@test -f "$(DESIGN_VERILOG)" || { echo "Error: missing $(DESIGN_VERILOG). Did finish.tcl export Verilog?"; exit 1; }
-	@test -f "$(GDS)" || { echo "Error: missing $(GDS). Did finish.tcl export GDS?"; exit 1; }
-
-.PHONY: export
-export: finish
-	@echo "[EXPORT] Verifying design exports..."
-	@ls -lh "$(DESIGN_VERILOG)" "$(GDS)"
-
-# ------------------------------------------------------------------------------
-# Nettran
-# ------------------------------------------------------------------------------
-$(NETTRAN_CDL): $(DESIGN_VERILOG)
-	$(call require_tool,icv_nettran)
-	@echo "[NETTRAN] Merging $< with stdcells + IO + PRIMATIVES -> $@"
-	test -r "$(STDCELLS_CDL)" || { echo "Error: STDCELLS_CDL not found"; exit 1; }
-	test -r "$(IO_CDL)"       || { echo "Error: IO_CDL not found"; exit 1; }
-	test -r "$(UNIT_CDL)"     || { echo "Error: UNIT_CDL not found"; exit 1; }
-	icv_nettran -verilog $< -sp "$(STDCELLS_CDL)" "$(IO_CDL)" "$(UNIT_CDL)" -outType SPICE -outName $@
-
-# ------------------------------------------------------------------------------
-# LVS
-# ------------------------------------------------------------------------------
-.PHONY: lvs
-lvs: export $(NETTRAN_CDL)
-	$(call require_tool,icv)
-	@echo "[LVS] Running ICV LVS in $(WORK_LVS_DIR)"
-	mkdir -p "$(WORK_LVS_DIR)"
-	cd "$(WORK_LVS_DIR)"; \
-	  icv \
-	    -f gdsii \
-	    -i "$(abspath $(GDS))" \
-	    -c "$(TOP)" \
-	    -I "$(ICV_LVS)" \
-	    -s "$(abspath $(NETTRAN_CDL))" \
-	    -sf SPICE \
-	    -stc "$(TOP)" \
-	    -oa_dm6 \
-	    -vue "$(ICV_LVS)/$(LVS_RUN_SET)" \
-	    2>&1 | tee stdout.lvs.log
-
-# ------------------------------------------------------------------------------
-# DRC
-# ------------------------------------------------------------------------------
-.PHONY: drc
-drc: export $(GDS)
-	$(call require_tool,icv)
-	@echo "[DRC] Running ICV DRC in $(WORK_DRC_DIR)"
-	mkdir -p "$(WORK_DRC_DIR)"
-	cd "$(WORK_DRC_DIR)"; \
-	  icv \
-	    -f gdsii \
-	    -i "$(abspath $(GDS))" \
-	    -c "$(TOP)" \
-	    -vue "$(ICV_DRC)/$(DRC_RUN_SET)" \
-	    2>&1 | tee stdout.drc.log
-
-# ------------------------------------------------------------------------------
-# FILL ONLY
-# ------------------------------------------------------------------------------
-.PHONY: fill
-fill: export $(GDS)
-	$(call require_tool,icv)
-	@echo "[FILL] Running ICV metal fill with BEOL_DENSITY=1 in $(WORK_FILL_DIR)"
-	mkdir -p "$(WORK_FILL_DIR)"
-	cd "$(WORK_FILL_DIR)"; \
-	  BEOL_DENSITY=1 \
-	  icv \
-	    -f gdsii \
-	    -i "$(abspath $(GDS))" \
-	    -c "$(TOP)" \
-	    -vue "$(ICV_DRC)/$(FILL_RUN_SET)" \
-	    2>&1 | tee stdout.fill.log ; exit 0
-	@FILLED_GDS=$$(ls $(WORK_FILL_DIR)/*.gds 2>/dev/null | head -n1); \
-	if [ -z "$$FILLED_GDS" ]; then \
-	  echo "[FILL] Error: No filled GDS produced."; exit 1; \
-	else \
-	  echo "[FILL] Filled GDS available at: $$FILLED_GDS"; \
-	fi
-
-# ------------------------------------------------------------------------------
-# FILL LVS
-# ------------------------------------------------------------------------------
-.PHONY: fill-lvs
-fill-lvs: $(NETTRAN_CDL) fill
-	@FILLED_GDS=$$(ls $(WORK_FILL_DIR)/*.gds 2>/dev/null | head -n1); \
-	if [ -z "$$FILLED_GDS" ]; then \
-	  echo "[FILL LVS] Error: No filled GDS available. Run 'make fill' first."; exit 1; \
-	else \
-	  ABS_FILLED_GDS=$$(realpath $$FILLED_GDS); \
-	  echo "[FILL LVS] Running LVS on $$ABS_FILLED_GDS"; \
-	  mkdir -p "$(WORK_FILL_LVS_DIR)"; \
-	  cd "$(WORK_FILL_LVS_DIR)"; \
-	    icv \
-	      -f gdsii \
-	      -i "$$ABS_FILLED_GDS" \
-	      -c "$(TOP)" \
-	      -I "$(ICV_LVS)" \
-	      -s "$(abspath $(NETTRAN_CDL))" \
-	      -sf SPICE \
-	      -stc "$(TOP)" \
-	      -oa_dm6 \
-	      -vue "$(ICV_LVS)/$(LVS_RUN_SET)" \
-	      2>&1 | tee stdout.lvs.log ; exit 0; \
-	fi
-
-# ------------------------------------------------------------------------------
-# FILL DRC
-# ------------------------------------------------------------------------------
-.PHONY: fill-drc
-fill-drc: fill
-	@FILLED_GDS=$$(ls $(WORK_FILL_DIR)/*.gds 2>/dev/null | head -n1); \
-	if [ -z "$$FILLED_GDS" ]; then \
-	  echo "[FILL DRC] Error: No filled GDS available. Run 'make fill' first."; exit 1; \
-	else \
-	  ABS_FILLED_GDS=$$(realpath $$FILLED_GDS); \
-	  echo "[FILL DRC] Running DRC on $$ABS_FILLED_GDS"; \
-	  mkdir -p "$(WORK_FILL_DRC_DIR)"; \
-	  cd "$(WORK_FILL_DRC_DIR)"; \
-	    icv \
-	      -f gdsii \
-	      -i "$$ABS_FILLED_GDS" \
-	      -c "$(TOP)" \
-	      -vue "$(ICV_DRC)/$(DRC_RUN_SET)" \
-	      2>&1 | tee stdout.drc.log ; exit 0; \
-	fi
-
-# ------------------------------------------------------------------------------
-# FILL ALL (fill + fill-lvs + fill-drc)
-# ------------------------------------------------------------------------------
-.PHONY: fill-all
-fill-all: fill fill-lvs fill-drc
-	@echo "[FILL-ALL] Fill + LVS + DRC completed successfully."
-
-# ------------------------------------------------------------------------------
-# Full flow
+# Full Flow
 # ------------------------------------------------------------------------------
 .PHONY: all
-all: finish $(NETTRAN_CDL) lvs drc fill-all
-	@echo "[FLOW] Full flow completed successfully."
+all: $(DEPENDENCY)
+	@echo "[FLOW] Fusion Compiler flow completed successfully up to the final TCL script."
 
 # ------------------------------------------------------------------------------
 # Clean
 # ------------------------------------------------------------------------------
-.PHONY: clean clean-nettran clean-lvs clean-drc clean-fill distclean
-clean: clean-nettran clean-lvs clean-drc clean-fill
-	rm -rf work $(WORK_DIR)
-
-clean-nettran:
-	rm -f $(NETTRAN_CDL) icv_nettran.log icv_nettran.sum
-
-clean-lvs:
-	rm -rf "$(WORK_LVS_DIR)" "$(WORK_FILL_LVS_DIR)"
-
-clean-drc:
-	rm -rf "$(WORK_DRC_DIR)" "$(WORK_FILL_DRC_DIR)"
-
-clean-fill:
-	rm -rf "$(WORK_FILL_DIR)"
+.PHONY: clean distclean
+clean:
+	rm -rf $(WORK_DIR)
+	@echo "Cleaned work directory."
 
 distclean: clean
 
 # ------------------------------------------------------------------------------
-# Help
+# Help Menu
 # ------------------------------------------------------------------------------
 .PHONY: help
 help:
+	@echo "================================================================"
+	@echo " Croc SoC Fusion Compiler Flow"
+	@echo "================================================================"
 	@echo "Main Targets:"
-	@echo "  make finish     – run Fusion Compiler full flow (export Verilog + GDS)"
-	@echo "  make all        – run finish + nettran + LVS + DRC + FILL-ALL"
-	@echo "  make lvs        – run ICV LVS"
-	@echo "  make drc        – run ICV DRC"
-	@echo "  make fill       – run ICV metal fill only"
-	@echo "  make fill-lvs   – run LVS on filled GDS (requires 'make fill')"
-	@echo "  make fill-drc   – run DRC on filled GDS (requires 'make fill')"
-	@echo "  make fill-all   – run fill + fill-lvs + fill-drc"
-	@
+	@echo "  make all        – Run all available Fusion Compiler steps sequentially"
+	@echo "  make clean      – Delete the 'work' directory and all generated logs"
+	@echo ""
+	@echo "Individual Steps (dynamically generated from scripts/):"
+	@echo "  make read_rtl"
+	@echo "  make floorplan"
+	@echo "  make synthesis"
+	@echo "  make cts"
+	@echo "  make route"
+	@echo "  make finish"
+	@echo ""
+	@echo "GUI / Interactive Commands:"
+	@echo "  make open_<step> – Open a specific block in terminal mode (e.g., make open_floorplan)"
+	@echo "  make gui_<step>  – Open a specific block in GUI mode (e.g., make gui_floorplan)"
+	@echo "================================================================"
