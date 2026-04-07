@@ -12,7 +12,7 @@
 +incdir+rtl/register_interface/include
 +define+TARGET_ASIC
 +define+TARGET_FLIST
-+define+TARGET_IHP13
++define+TARGET_GF180
 +define+TARGET_RTL
 +define+TARGET_SYNTHESIS
 +define+VERILATOR=1
@@ -163,8 +163,8 @@ rtl/timer_unit/timer_unit_counter.sv
 rtl/timer_unit/timer_unit_counter_presc.sv
 rtl/timer_unit/apb_timer_unit.sv
 rtl/timer_unit/timer_unit.sv
-rtl/ihp13/tc_clk.sv
-rtl/ihp13/tc_sram.sv
+rtl/tech_cells/gf180/tc_clk.sv
+rtl/tech_cells/gf180/tc_sram.sv
 rtl/croc_pkg.sv
 rtl/user_pkg.sv
 rtl/soc_ctrl/soc_ctrl_reg_pkg.sv
