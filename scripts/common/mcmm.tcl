@@ -73,4 +73,4 @@ set_scenario_status -all  -hold false -dynamic_power false -leakage_power false 
 set_scenario_status -none -hold true  -dynamic_power true  -leakage_power true  -cell_em true  -signal_em true  {fast}
 
 # mode setup needs to know all scenarios
-source -e $SCRIPT_DIR/common/mode_func.tcl
+source [file dirname [info script]]/mode_func.tcl

@@ -42,12 +42,12 @@ set_top_module
 ###########################################################
 # Technology setup
 ###########################################################
-source -e $SCRIPT_DIR/common/tech_setup.tcl
+source [file dirname [info script]]/common/tech_setup.tcl
 
 ###########################################################
 # MCMM configuration
 ###########################################################
-source -e $SCRIPT_DIR/common/mcmm.tcl
+source [file dirname [info script]]/common/mcmm.tcl
 
 ###########################################################
 # Reporting constraints
