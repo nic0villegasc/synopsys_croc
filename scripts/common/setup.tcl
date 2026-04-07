@@ -25,11 +25,11 @@ set TECHNOLOGY          "gf180mcu"
 
 # Tech Files & Layermaps
 set PDK_DIR             $TECHLIB_DATA_DIR
-set TECH_FILE           "${PDK_DIR}/PnR/latest_ENC/5LM_1TM_11K/gf180nm_mcu_5LM_1TM_11K_${STDCELL_TRACK_SIZE}t_mw.tf"
-set ICC2GDS_LAYERMAP    "${PDK_DIR}/PnR/latest_ENC/5LM_1TM_11K/gf180nm_mcu_5LM_1TM_11K_icc2gds.layermap"
+set TECH_FILE           "${PDK_DIR}/tech/gf180nm_mcu_5LM_1TM_11K_${STDCELL_TRACK_SIZE}t_mw.tf"
+set ICC2GDS_LAYERMAP    "${PDK_DIR}/tech/gf180nm_mcu_5LM_1TM_11K_icc2gds.layermap"
 
-set LPE_LAYERMAP        "${PDK_DIR}/PEX_StarRC/latest/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB_typ.layermap"
-set LPE_NXTGRD          "${PDK_DIR}/PEX_StarRC/latest/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB_typ.nxtgrd"
+set LPE_LAYERMAP        "${PDK_DIR}/pex/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB_typ.layermap"
+set LPE_NXTGRD          "${PDK_DIR}/pex/gf180mcu_1p5m_1tm_11k_sp_smim_OPTB_typ.nxtgrd"
 
 # -----------------------------------------------------------------------------
 # 3. Reference Libraries (NDMs)
@@ -38,7 +38,7 @@ set LPE_NXTGRD          "${PDK_DIR}/PEX_StarRC/latest/gf180mcu_1p5m_1tm_11k_sp_s
 set REFERENCE_LIBRARY [list \
     "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_sc_mcu${STDCELL_TRACK_SIZE}t5v0.ndm" \
     "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_io.ndm" \
-    "${TECHLIB_DATA_DIR}/ndm/sram_512x8m8wm1.ndm" \
+    "${TECHLIB_DATA_DIR}/ndm/gf180mcu_fd_ip_sram__sram512x8m8wm1.ndm" \
 ]
 
 # -----------------------------------------------------------------------------

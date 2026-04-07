@@ -1,13 +1,10 @@
-# -----------------------------------------------------------------------------
-# This file was created at the Institute of Microelectronic Systems,
-# Leibniz University Hannover. It is provided "as is" without
-# warranty of any kind, express or implied, including but not
-# limited to correctness or fitness for a particular purpose.
-#
-# Author: Viktor Schneider
-# -----------------------------------------------------------------------------
+###############################################################################
+# Croc SoC Physical Design Flow
+# Author: Nicolás Villegas - Universidad de los Andes, Chile
+# Description: Read RTL and Elaborate
+###############################################################################
 
-# This command loads the common/setup.tcl file
+# Load the common setup configuration
 source [file dirname [info script]]/common/setup.tcl
 
 ###########################################################
@@ -22,8 +19,23 @@ create_lib -technology $TECH_FILE -ref_libs $REFERENCE_LIBRARY $DESIGN_LIBRARY
 ###########################################################
 # Read design
 ###########################################################
-analyze -format sverilog -vcs "-F $SCRIPT_DIR/../file.lst"
+puts "RM-info: Analyzing RTL using native .flist parsing..."
 
+# 1. Parse just the include directories and add them to FC's search_path
+set fp [open "../croc.flist" r]
+while {[gets $fp line] >= 0} {
+    set line [string trim $line]
+    if {[string match "+incdir+*" $line]} {
+        set inc [string map {"+incdir+" ""} $line]
+        lappend search_path "../$inc"
+    }
+}
+close $fp
+
+# 2. Analyze the design (the -F flag still handles the file paths and +defines natively)
+analyze -format sverilog -vcs "-F ../croc.flist"
+
+# Elaborate the top module (croc_chip) defined in setup.tcl
 elaborate $TOP_MODULE
 set_top_module
 
@@ -37,8 +49,9 @@ source -e $SCRIPT_DIR/common/tech_setup.tcl
 ###########################################################
 source -e $SCRIPT_DIR/common/mcmm.tcl
 
-
-# add some report_utilization configs
+###########################################################
+# Reporting constraints
+###########################################################
 create_utilization_configuration overall  -exclude io_cells
 create_utilization_configuration stdcells -exclude { hard_macros macro_keepouts soft_macros io_cells hard_blockages soft_blockages }
 
