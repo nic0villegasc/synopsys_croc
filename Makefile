@@ -10,13 +10,6 @@ SHELL := /bin/bash
 .DELETE_ON_ERROR:
 
 # ------------------------------------------------------------------------------
-# Paths (Hardcoded for ease of use, replacing environment variables)
-# ------------------------------------------------------------------------------
-# Update this path to where your GF180MCU PDK is located on your local machine
-PDK_ROOT           := /mnt/designkits/gf180MCU/dk_open
-GF180MCU_PDK_DIR   := $(PDK_ROOT)/share/pdk/gf180mcuD
-
-# ------------------------------------------------------------------------------
 # Design Configuration
 # ------------------------------------------------------------------------------
 TOP                := croc_chip
