@@ -1,203 +1,92 @@
+# Croc SoC: Physical Implementation & Foundational Flow
+
+This repository provides a unified ASIC physical design flow for the **Croc RISC-V MCU**, targeting the **GF180MCU PDK**. It integrates Synopsys Fusion Compiler (FC) for RTL-to-GDSII and Synopsys IC Validator (ICV) for signoff verification (LVS, DRC, and Metal Fill).
+
+## 📖 Project Background
+This physical implementation framework was initially developed as part of an internship project supported by **AC3E**, **Synopsys**, and the **Universidad de los Andes**. 
+
+While it started as a targeted study of the Croc architecture and Synopsys Reference Methodologies (RM), this repository now serves as a foundational, extensible framework for ongoing personal research and educational ASIC tapeouts in VLSI physical design.
+
+**Author:** Nicolás Villegas – Electrical Engineering Student, Universidad de los Andes, Chile.
 
 ---
-**Notice**
 
-The modifications in this PDK were done by **North Carolina State University** and
-**Institute of Microelectronic Systems, Leibniz University Hannover**.  
+## 🛠️ Prerequisites
 
-It is provided *“as is”* without warranty of any kind, express or implied,  
-including but not limited to correctness or fitness for a particular purpose.
+To run this flow, your environment must have access to:
+* **Synopsys Fusion Compiler** (`fc_shell`)
+* **Synopsys IC Validator** (`icv`, `icv_nettran`)
+* **GF180MCU PDK** (OpenPDKs layout and CDL views)
+* A Linux environment with `bash`
 
-**Authors:**
-- W. Shepherd Pitts, PhD (NCSU) – wspitts2@ncsu.edu  
-- Viktor Schneider (IMS LUH)  
+### Environment Variables
+Ensure the following variables are set in your terminal before running the flow:
+* `OPENPDKS_DIR_BASE` → Path to your OpenPDKs installation.
+* `PDK_DIR` → Path to the Synopsys runset/tech directory for ICV.
 
-Note: you can make your own NDM files by going up one directory and using the Makefile provided there.
-
-**Copyright © 2025 North Carolina State University and Leibniz University Hannover.**
----
 ---
 
-# Fusion Compiler + ICV LVS/DRC Unified Flow
+## 📂 Directory Structure
 
-This repository provides a **unified Makefile flow** that integrates
-Synopsys Fusion Compiler (FC) with Synopsys IC Validator (ICV) for
-running **RTL-to-GDSII synthesis**, **netlist translation (nettran)**,
-and **signoff verification (LVS/DRC/Fill)** on the GF180MCU PDK.
+This repository acts as a single source of truth for the flow, driven entirely by the `Makefile`.
 
-------------------------------------------------------------------------
-
-## Prerequisites
-
-- **Synopsys Fusion Compiler** (`fc_shell`)
-- **Synopsys IC Validator** (`icv`, `icv_nettran`)
-- **GF180MCU PDK** with OpenPDKs layout and CDL views
-- Linux environment with `bash`  
-  (the Makefile enforces `bash -eu -o pipefail`)
-
-Environment variables required:
-
-- `OPENPDKS_DIR_BASE` → Path to your OpenPDKs install
-- `PDK_DIR` → Path to the Synopsys runset/tech directory for ICV
-
-------------------------------------------------------------------------
-
-## Directory Structure
-
-```
+```text
 .
-├── Makefile            # Unified flow driver
-├── scripts/            # Fusion Compiler TCL scripts (e.g., 01_read_rtl.tcl, 99_finish.tcl)
-├── work/               # Build artifacts (FC outputs, merged netlists, logs)
-├── synopsys_custom/    # Pre-fill signoff outputs (LVS/DRC)
-└── fill/               # Post-fill outputs (filled GDS, LVS/DRC runs)
+├── Makefile            # Unified flow driver (handles FC and ICV runs)
+├── README.md           # Project documentation
+├── croc.flist          # Unified RTL source manifest
+├── rtl/                # Source SystemVerilog files (CVE2, OBI, APB, etc.)
+├── scripts/            # Fusion Compiler TCL scripts (01_read_rtl.tcl, etc.)
+│   └── common/         # Technology setup and constraints
+├── documentation/      # Flow documentation and physical design guides
 ```
 
-------------------------------------------------------------------------
+*(Note: The directories `work/`, `synopsys_custom/`, and `fill/` will be generated automatically during the build process to store logs, artifacts, and GDS outputs).*
 
-## Key Variables
+---
 
-- **Design**
-  - `TOP` – Top design name (default: `top`)
-  - `RTL_SV` – RTL source (default: `$(TOP).sv`)
-  - `DESIGN_VERILOG` – Synthesized Verilog netlist (`work/$(TOP).v`)
-  - `GDS` – Final layout GDS (`work/$(TOP).gds`)
-- **PDK**
-  - `GF180MCU_PDK_DIR` – Base path to GF180 PDK OpenPDKs flavor
-  - `STDCELLS_CDL` – Standard cell CDL
-  - `IO_CDL` – IO cell CDL
-- **Runsets**
-  - `LVS_RUN_SET` – LVS rule deck (default: `cmos018hv.3p3.6v.lvs.rs`)
-  - `DRC_RUN_SET` – DRC rule deck (default: `gf180mcu_drc.rs`)
-  - `FILL_RUN_SET` – Fill rule deck (default: `gf180mcu_fill.rs`)
+## ⚙️ Key Flow Configuration
 
-------------------------------------------------------------------------
+If you need to change the target module or runsets, you can edit these variables at the top of the `Makefile`:
 
-## Main Targets
+* **Design Top:** The default top module is set to `croc_chip`.
+* **RTL List:** Driven by `croc.flist`.
+* **Runsets:** Defaults to `cmos018hv.3p3.6v.lvs.rs` (LVS), `gf180mcu_drc.rs` (DRC), and `gf180mcu_fill.rs` (Fill).
 
-- `make finish`  
-  Run Fusion Compiler full flow (up to `finish.tcl`), exporting:
-  - Gate-level Verilog (`work/top.v`)
-  - Layout GDS (`work/top.gds`)
+---
 
-- `make all`  
-  Run the **complete flow**: `finish` → `nettran` → `LVS` → `DRC` → `FILL-ALL`.
+## 🚀 How to Run the Flow
 
-- `make lvs`  
-  Run ICV LVS with `work/top_lvs_merged.cdl` and `work/top.gds`.
+The `Makefile` dynamically generates rules from the TCL scripts in the `scripts/` directory.
 
-- `make drc`  
-  Run ICV DRC with the exported layout GDS.
+### Full Automation
+* `make all`
+    * Runs the complete RTL-to-GDS flow: Synthesis → Nettran → LVS → DRC → Metal Fill → Post-Fill Checks.
 
-- `make fill`  
-  Run ICV metal fill only. Produces a filled GDS in `fill/top.icv.fill/`.
+### Step-by-Step Build
+You can run the Fusion Compiler stages sequentially:
+* `make read_rtl` – Load RTL and elaborate
+* `make floorplan` – Floorplanning and Power Grid (PG) creation
+* `make synthesis` – Logic Synthesis
+* `make cts` – Clock Tree Synthesis
+* `make route` – Routing
+* `make finish` – Finalize and export the Verilog netlist and GDSII
 
-- `make fill-lvs`  
-  Run LVS on the filled GDS (requires `make fill`).
+*(Tip: You can open any stage in the GUI by prefixing `gui_`, e.g., `make gui_floorplan`)*.
 
-- `make fill-drc`  
-  Run DRC on the filled GDS (requires `make fill`).
+### Signoff Checks (IC Validator)
+If you already have your `work/croc_chip.gds` generated, you can run individual checks:
+* `make lvs` – Runs LVS against the merged SPICE netlist.
+* `make drc` – Runs DRC against the GF180 foundry rules.
+* `make fill-all` – Runs metal fill insertion, followed by a final LVS/DRC on the filled GDS.
 
-- `make fill-all`  
-  Run fill + fill-lvs + fill-drc.
+### Cleaning Up
+* `make clean` – Removes LVS, DRC, and Fill artifacts.
+* `make distclean` – Wipes the entire environment clean, including the `work/` directory containing the exported GDS.
 
-------------------------------------------------------------------------
+---
 
-## Cleaning Targets
+## 🙏 Acknowledgments
 
-- `make clean` – Remove nettran, LVS, DRC, and fill outputs
-- `make clean-lvs` – Remove LVS and fill-LVS run directories
-- `make clean-drc` – Remove DRC and fill-DRC run directories
-- `make clean-fill` – Remove fill directories
-- `make clean-nettran` – Remove merged CDL (`*_lvs_merged.cdl`)
-- `make distclean` – Clean everything (including `work/`)
-
-------------------------------------------------------------------------
-
-## Stepwise Targets
-
-The Makefile dynamically generates rules from `scripts/0*_*.tcl`:
-
-- `make read_rtl` – Run RTL import/init
-- `make floorplan` – Floorplanning + power grid
-- `make synthesis` – Logic synthesis
-- `make cts` – Clock tree synthesis
-- `make route` – Routing
-- `make finish` – Finalize, export Verilog + GDS
-
-You can also run:  
-- `make open_<step>` – Open a block in terminal mode  
-- `make gui_<step>` – Open a block in GUI mode  
-
-Example:
-
-```bash
-make gui_floorplan
-```
-
-------------------------------------------------------------------------
-
-## Nettran
-
-After Fusion Compiler finishes, `icv_nettran` merges:  
-- The synthesized Verilog (`work/top.v`)  
-- Standard cell CDL  
-- IO cell CDL  
-
-into a single merged SPICE netlist:
-
-```
-work/top_lvs_merged.cdl
-```
-
-This is the **schematic netlist** used for LVS.
-
-------------------------------------------------------------------------
-
-## LVS & DRC
-
-- **LVS**: Runs IC Validator in `$(WORK_LVS_DIR)` and compares
-  `work/top.gds` vs `work/top_lvs_merged.cdl`.
-- **DRC**: Runs IC Validator in `$(WORK_DRC_DIR)` against the foundry rule deck.
-- **Fill LVS/DRC**: Post-fill signoff runs are placed under `fill/top.icv.fill.*`.
-
-Logs are written to:  
-- `stdout.lvs.log`  
-- `stdout.drc.log`  
-- `stdout.fill.log`  
-
-------------------------------------------------------------------------
-
-## Example Usage
-
-```bash
-# Run the complete flow
-make all -j$(nproc)
-
-# Just run LVS after synthesis
-make lvs
-
-# Just run DRC
-make drc
-
-# Run fill and post-fill checks
-make fill-all
-
-# Clean outputs
-make clean
-
-# Clean only LVS results
-make clean-lvs
-
-# Clean only DRC results
-make clean-drc
-```
-
-------------------------------------------------------------------------
-
-## Notes
-
-- Ensure your `finish.tcl` script **exports Verilog and GDS**;
-  otherwise, `make all` will fail at nettran.
-- The Makefile enforces tool checks before each stage with `require_tool`.
-- Parallel builds (`make -j`) are supported and safe.
+* **Croc Architecture:** The underlying Croc SoC RTL (CVE2, OBI) was developed by the Integrated Systems Laboratory at ETH Zurich and the University of Bologna. 
+* **Flow Base:** The foundational `Makefile` and tool integration base logic was originally authored by W. Shepherd Pitts (NCSU) and Viktor Schneider (IMS LUH).
