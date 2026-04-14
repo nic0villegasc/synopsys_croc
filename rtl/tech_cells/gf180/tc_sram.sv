@@ -19,62 +19,6 @@ module tc_sram_blackbox #(
 ) ();
 endmodule
 
-// one tie-off per macro to avoid port size mismatch warnings
-`define IHP13_TC_SRAM_64x64_TIEOFF \
-  .A_BIST_CLK   (  1'b0 ), \
-  .A_BIST_ADDR  (  6'd0 ), \
-  .A_BIST_DIN   ( 64'd0 ), \
-  .A_BIST_BM    ( 64'd0 ), \
-  .A_BIST_MEN   (  1'b0 ), \
-  .A_BIST_WEN   (  1'b0 ), \
-  .A_BIST_REN   (  1'b0 ), \
-  .A_BIST_EN    (  1'b0 ), \
-  .A_DLY        (  1'b0 )
-
-`define IHP13_TC_SRAM_256x64_TIEOFF \
-  .A_BIST_CLK   (  1'b0 ), \
-  .A_BIST_ADDR  (  8'd0 ), \
-  .A_BIST_DIN   ( 64'd0 ), \
-  .A_BIST_BM    ( 64'd0 ), \
-  .A_BIST_MEN   (  1'b0 ), \
-  .A_BIST_WEN   (  1'b0 ), \
-  .A_BIST_REN   (  1'b0 ), \
-  .A_BIST_EN    (  1'b0 ), \
-  .A_DLY        (  1'b0 )
-
-`define IHP13_TC_SRAM_512x64_TIEOFF \
-  .A_BIST_CLK   (  1'b0 ), \
-  .A_BIST_ADDR  (  9'd0 ), \
-  .A_BIST_DIN   ( 64'd0 ), \
-  .A_BIST_BM    ( 64'd0 ), \
-  .A_BIST_MEN   (  1'b0 ), \
-  .A_BIST_WEN   (  1'b0 ), \
-  .A_BIST_REN   (  1'b0 ), \
-  .A_BIST_EN    (  1'b0 ), \
-  .A_DLY        (  1'b0 )
-
-`define IHP13_TC_SRAM_1024x64_TIEOFF \
-  .A_BIST_CLK   (  1'b0 ), \
-  .A_BIST_ADDR  ( 10'd0 ), \
-  .A_BIST_DIN   ( 64'd0 ), \
-  .A_BIST_BM    ( 64'd0 ), \
-  .A_BIST_MEN   (  1'b0 ), \
-  .A_BIST_WEN   (  1'b0 ), \
-  .A_BIST_REN   (  1'b0 ), \
-  .A_BIST_EN    (  1'b0 ), \
-  .A_DLY        (  1'b0 )
-
-`define IHP13_TC_SRAM_2048x64_TIEOFF \
-  .A_BIST_CLK   (  1'b0 ), \
-  .A_BIST_ADDR  ( 11'd0 ), \
-  .A_BIST_DIN   ( 64'd0 ), \
-  .A_BIST_BM    ( 64'd0 ), \
-  .A_BIST_MEN   (  1'b0 ), \
-  .A_BIST_WEN   (  1'b0 ), \
-  .A_BIST_REN   (  1'b0 ), \
-  .A_BIST_EN    (  1'b0 ), \
-  .A_DLY        (  1'b0 )
-
 module tc_sram #(
   parameter int unsigned NumWords     = 32'd1024,
   parameter int unsigned DataWidth    = 32'd128,
