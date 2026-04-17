@@ -70,7 +70,8 @@ create_io_filler_cells -reference_cells {gf180mcu_fd_io__fill10 gf180mcu_fd_io__
 shape_blocks
 
 set all_macros [get_cells -hierarchical -filter "is_hard_macro && !is_physical_only"]
-create_keepout_margin -outer {5 5 5 5} $all_macros
+create_keepout_margin -type hard_macro -outer {10 10 10 10} $all_macros
+create_keepout_margin -type hard -outer {10 10 10 10} $all_macros
 
 create_placement -floorplan
 
@@ -93,3 +94,4 @@ save_block -as floorplan_pre_pg
 source [file dirname [info script]]/common/power_grid.tcl
 
 save_block -as floorplan_post_pg
+print_message_info -ids * -summary

@@ -56,3 +56,4 @@ create_utilization_configuration overall  -exclude io_cells
 create_utilization_configuration stdcells -exclude { hard_macros macro_keepouts soft_macros io_cells hard_blockages soft_blockages }
 
 save_block -as read_rtl
+print_message_info -ids * -summary

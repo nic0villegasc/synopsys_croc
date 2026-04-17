@@ -12,6 +12,7 @@ SHELL := /bin/bash
 # ------------------------------------------------------------------------------
 TOP                := croc_chip
 WORK_DIR           := work
+LOGS_DIR           := logs
 REPO_DIR           := $(shell pwd)
 
 .DEFAULT_GOAL := help
@@ -23,7 +24,7 @@ REPO_DIR           := $(shell pwd)
 # (e.g., 01_read_rtl.tcl, 02_floorplan.tcl) and creates a make target for it.
 define MAKE_FC_RULE
 $2: $3
-	mkdir -p $(WORK_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(WORK_DIR)/$2.log
+	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
 
 open_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
@@ -32,7 +33,7 @@ gui_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
 $(WORK_DIR)/design.dlib/$2: $3
-	mkdir -p $(WORK_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(WORK_DIR)/$2.log
+	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
 endef
 
 TCL_FILES = $(sort $(wildcard scripts/0*_*.tcl))
@@ -56,10 +57,8 @@ all: $(DEPENDENCY)
 # ------------------------------------------------------------------------------
 .PHONY: clean distclean
 clean:
-	rm -rf $(WORK_DIR)
-	@echo "Cleaned work directory."
-
-distclean: clean
+	rm -rf $(WORK_DIR) $(LOGS_DIR)
+	@echo "Cleaned work and logs directories."
 
 # ------------------------------------------------------------------------------
 # Help Menu
