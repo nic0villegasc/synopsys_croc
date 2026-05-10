@@ -23,8 +23,9 @@ REPO_DIR           := $(shell pwd)
 # This block automatically reads any TCL file in scripts/ that starts with a number 
 # (e.g., 01_read_rtl.tcl, 02_floorplan.tcl) and creates a make target for it.
 define MAKE_FC_RULE
-$2: $3
-	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
+.PHONY: $2 open_$2 gui_$2
+
+$2: $(WORK_DIR)/design.dlib/$2
 
 open_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
@@ -33,7 +34,7 @@ gui_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
 $(WORK_DIR)/design.dlib/$2: $3
-	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
+	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && set -o pipefail; fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
 endef
 
 TCL_FILES = $(sort $(wildcard scripts/0*_*.tcl))

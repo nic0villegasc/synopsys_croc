@@ -5,7 +5,7 @@
 ###############################################################################
 
 ##############################################################
-# Reset grid & Connect Nets (Unchanged)
+# Reset grid & Connect Nets
 ##############################################################
 remove_pg_strategies -all
 remove_pg_patterns -all
@@ -17,12 +17,12 @@ remove_routes -net_types {power ground} -ring -stripe -macro_pin_connect -lib_ce
 create_net -power VDD
 create_net -ground VSS
 
-connect_pg_net -net VDD [get_pins -hierarchical  "*/VDD"]
-connect_pg_net -net VSS [get_pins -hierarchical  "*/VSS"]
-connect_pg_net -net VDD [get_pins -hierarchical  "*/VNW"]
-connect_pg_net -net VSS [get_pins -hierarchical  "*/VPW"]
-connect_pg_net -net VDD [get_pins -hierarchical  "*/DVDD"]
-connect_pg_net -net VSS [get_pins -hierarchical  "*/DVSS"]
+set all_macros [get_cells -hierarchical -filter "is_hard_macro && !is_physical_only"]
+
+connect_pg_net -net VDD [get_pins -of_objects $all_macros -physical_context -filter "name == VDD"]
+connect_pg_net -net VSS [get_pins -of_objects $all_macros -physical_context -filter "name == VSS"]
+
+connect_pg_net -automatic
 
 set_pg_via_master_rule via_master_mesh_top -contact_code Via4_VV
 
@@ -50,35 +50,44 @@ set_pg_strategy s_io_to_ring \
     -macros [get_cells -hierarchical -filter "ref_name =~ gf180mcu_fd_io*"] \
     -pattern {{name: io_to_ring}{nets: {VDD VSS}}}
 
-# Connect the IO to the ring we just built in Step 1
 set_pg_strategy_via_rule via_io_to_ring -via_rule { \
     {{{strategies: s_io_to_ring} {layers: {Metal2 Metal5 Metal4}}} \
      {{existing: ring} {layers: {Metal5 Metal4}}} \
      {via_master: {Via3_VV Via4_VV}}} \
 }
 
-# ---> COMPILE STEP 2
 compile_pg -strategies s_io_to_ring -via_rule via_io_to_ring
 
-
 ##############################################################
-# 3. Macro Power Rings (COMPILE FIRST)
+# 5. Macro Scattered Pins Connection
 ##############################################################
-# Define the macro variable early so we can use it for both rings and meshes
-set all_macros [get_cells -hierarchical -filter "is_hard_macro && !is_physical_only"]
+create_pg_ring_pattern sram_inner_ring_pat \
+    -nets {VDD VSS} \
+    -horizontal_layer Metal5 \
+    -vertical_layer Metal4 \
+    -horizontal_width 2.0 \
+    -vertical_width 2.0 \
+    -horizontal_spacing 1.0 \
+    -vertical_spacing 1.0 \
+    -corner_bridge true
 
-create_pg_ring_pattern macro_ring_pattern -nets {VDD VSS} \
-    -horizontal_layer Metal5 -horizontal_width 2 -horizontal_spacing 1 \
-    -vertical_layer Metal4   -vertical_width 2   -vertical_spacing 1 \
-    -corner_bridge false
+set_pg_strategy sram_inner_ring_strat \
+    -macros $all_macros \
+    -pattern {{name: sram_inner_ring_pat} {nets: {VDD VSS}} {offset: {-5.0 -5.0}}}
 
-set_pg_strategy strategy_macro_ring -macros $all_macros \
-    -pattern {{pattern: macro_ring_pattern} {nets: {VDD VSS}} {offset: {1.5 1.5}}}
+set_pg_strategy_via_rule ring_to_macro_vias \
+    -via_rule { \
+        {{{strategies: sram_inner_ring_strat}} \
+         {{macro_pins: all} {layers: Metal3}} \
+         {via_master: {Via3_VV Via4_VV}}} \
+         \
+        {{{strategies: sram_inner_ring_strat}} \
+         {{macro_pins: all} {layers: Metal3}} \
+         {via_master: {Via3_VV Via4_VV}} \
+         {between_parallel: true}} \
+    }
 
-# ---> COMPILE STEP 3
-# We compile the macro rings FIRST so the macro meshes have a physical ring to stop at.
-compile_pg -strategies strategy_macro_ring
-
+compile_pg -strategies {sram_inner_ring_strat} -via_rule {ring_to_macro_vias}
 
 ##############################################################
 # 4. Global Power Mesh
@@ -89,11 +98,9 @@ create_pg_mesh_pattern mesh_pattern_top -via_rule {{intersection: adjacent} {via
         {{vertical_layer:   Metal4 } {width: 3} {pitch: 90} {spacing: interleaving} } \
 }
 
-# Apply global mesh, block macros, and connect to the macro rings
 set_pg_strategy mesh_strategy_top -core \
     -pattern {{pattern: mesh_pattern_top} {nets: {VDD VSS}}} \
-    -extension {stop: innermost_ring} \
-    -blockage {{macros: all}}
+    -extension {stop: innermost_ring}
 
 set_pg_strategy_via_rule via_mesh_to_ring -via_rule { \
     {{{strategies: mesh_strategy_top}} \
@@ -101,32 +108,8 @@ set_pg_strategy_via_rule via_mesh_to_ring -via_rule { \
      {via_master: via_master_mesh_top}} \
 }
 
-# ---> COMPILE STEP 2
 compile_pg -strategies mesh_strategy_top -via_rule via_mesh_to_ring
 
-
-##############################################################
-# 5. Macro Scattered Pins Connection
-##############################################################
-# Added -pin_layers to tell the tool where to look for the SRAM pins
-create_pg_macro_conn_pattern macro_pad_conn \
-    -pin_conn_type scattered_pin \
-    -pin_layers {Metal2 Metal3} \
-    -layers {Metal4 Metal5} \
-    -width {0.5 0.5}
-
-set_pg_strategy strategy_macro_conn -macros $all_macros \
-    -pattern {{name: macro_pad_conn} {nets: {VDD VSS}}}
-
-# Added Via2_VV to the via_master list so it can complete the stack down to M2
-set_pg_strategy_via_rule via_pads_to_ring -via_rule { \
-    {{{strategies: strategy_macro_conn}} \
-     {{existing: ring}} \
-     {via_master: {Via2_VV Via3_VV Via4_VV}}} \
-}
-
-# ---> COMPILE STEP 5
-compile_pg -strategies {strategy_macro_conn} -via_rule via_pads_to_ring
 
 ##############################################################
 # 6. Std rail
@@ -138,16 +121,13 @@ set_pg_strategy M1_rail_strategy -core -pattern {{name: M1_rail} {nets: VDD VSS}
 
 set_pg_via_master_rule via_to_stdcells -via_array_dimension {3 1}
 
-# Connect the M1 rails to the M4 mesh straps we built in Step 3
 set_pg_strategy_via_rule via_rail_to_mesh -via_rule { \
     {{{strategies: M1_rail_strategy} {layers: Metal1}} \
      {{existing: strap} {layers: Metal4}} \
      {via_master: via_to_stdcells}} \
 }
 
-# ---> COMPILE STEP 5
 compile_pg -strategies M1_rail_strategy -via_rule via_rail_to_mesh
-
 
 ##############################################################
 # Verification

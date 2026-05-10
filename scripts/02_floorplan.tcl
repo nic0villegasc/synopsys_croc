@@ -8,13 +8,11 @@ source [file dirname [info script]]/common/open_lib.tcl
 open_block read_rtl
 
 set SITE_DEF unit
-#set SITE_DEF GF018hv5v_mcu_sc7
 
 initialize_floorplan \
     -control_type die \
     -shape R \
-    -side_ratio {1 1} \
-    -core_utilization 0.7 \
+    -side_length {3000 3000} \
     -core_offset 400
 
 compile_fusion -to initial_map
@@ -93,5 +91,5 @@ save_block -as floorplan_pre_pg
 
 source [file dirname [info script]]/common/power_grid.tcl
 
-save_block -as floorplan_post_pg
+save_block -as floorplan
 print_message_info -ids * -summary
