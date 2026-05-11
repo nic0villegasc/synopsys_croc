@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 # 1. Design & Project Variables
 # -----------------------------------------------------------------------------
-set TOP_MODULE          "croc_chip"
+set TOP_MODULE          "croc_soc"
 set DESIGN_NAME         $TOP_MODULE
 set DESIGN_LIBRARY      "design.dlib"
 
