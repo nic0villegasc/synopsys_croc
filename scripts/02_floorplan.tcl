@@ -12,58 +12,63 @@ set SITE_DEF unit
 initialize_floorplan \
     -control_type die \
     -shape R \
-    -side_length {3000 3000} \
-    -core_offset 400
+    -side_ratio {1 1} \
+    -core_utilization 0.7
 
 compile_fusion -to initial_map
 check_design_states -verbose
 
-create_io_ring -name io_ring -corner_height 355
+set_block_pin_constraints -self -allowed_layers {Metal1 Metal2 Metal3} -pin_spacing 2
 
-set CORNER_CELL [get_lib_cells */gf180mcu_fd_io__cor]
-create_cell {corner_0 corner_1 corner_2 corner_3} $CORNER_CELL
-
-set pads_top {
-    pad_gpio18_io pad_vss3 pad_gpio5_io pad_gpio6_io pad_gpio7_io pad_gpio8_io 
-    pad_gpio9_io pad_gpio10_io pad_gpio11_io pad_gpio12_io pad_gpio13_io 
-    pad_gpio14_io pad_gpio15_io pad_jtag_trst_ni pad_gpio16_io pad_gpio17_io
+set ports_top {
+    gpio_i[5] gpio_o[5] gpio_out_en_o[5]
+    gpio_i[6] gpio_o[6] gpio_out_en_o[6]
+    gpio_i[7] gpio_o[7] gpio_out_en_o[7]
+    gpio_i[8] gpio_o[8] gpio_out_en_o[8]
+    gpio_i[9] gpio_o[9] gpio_out_en_o[9]
+    gpio_i[10] gpio_o[10] gpio_out_en_o[10]
+    gpio_i[11] gpio_o[11] gpio_out_en_o[11]
+    gpio_i[12] gpio_o[12] gpio_out_en_o[12]
+    gpio_i[13] gpio_o[13] gpio_out_en_o[13]
+    gpio_i[14] gpio_o[14] gpio_out_en_o[14]
+    gpio_i[15] gpio_o[15] gpio_out_en_o[15]
+    jtag_trst_ni
+    testmode_i
 }
 
-set pads_right {
-    pad_vdd0 pad_vddio0 pad_status_o pad_gpio19_io pad_jtag_tdo_o pad_vdd2 
-    pad_rst_ni pad_gpio1_io pad_vdd3 pad_vddio3 pad_gpio3_io pad_uart_rx_i 
-    pad_vdd1 pad_vddio1 pad_gpio4_io pad_vssio3
+set ports_right {
+    status_o
+    jtag_tdo_o
+    rst_ni
+    gpio_i[1] gpio_o[1] gpio_out_en_o[1]
+    gpio_i[3] gpio_o[3] gpio_out_en_o[3]
+    uart_rx_i
+    gpio_i[4] gpio_o[4] gpio_out_en_o[4]
 }
 
-set pads_bottom {
-    pad_gpio20_io pad_gpio21_io pad_jtag_tms_i pad_gpio22_io pad_gpio23_io 
-    pad_gpio24_io pad_gpio25_io pad_gpio26_io pad_jtag_tck_i pad_gpio27_io 
-    pad_unused0_o pad_gpio28_io pad_gpio29_io pad_gpio30_io pad_unused1_o pad_unused2_o
+set ports_bottom {
+    jtag_tms_i
+    jtag_tck_i
 }
 
-set pads_left {
-    pad_vss0 pad_vss1 pad_ref_clk_i pad_vss2 pad_unused3_o pad_uart_tx_o 
-    pad_gpio2_io pad_vssio0 pad_vssio1 pad_clk_i pad_vddio2 pad_vssio2 
-    pad_jtag_tdi_i pad_fetch_en_i pad_gpio0_io pad_gpio31_io
+set ports_left {
+    ref_clk_i
+    uart_tx_o
+    gpio_i[2] gpio_o[2] gpio_out_en_o[2]
+    clk_i
+    jtag_tdi_i
+    fetch_en_i
+    gpio_i[0] gpio_o[0] gpio_out_en_o[0]
 }
 
-# 3. Apply Physical Constraints
-set_signal_io_constraints -io_guide_object io_ring.top \
-    -constraint "{ {order_only} $pads_top }"
+create_pin_constraint -type individual -ports $ports_top -sides 2
+create_pin_constraint -type individual -ports $ports_right -sides 3
+create_pin_constraint -type individual -ports $ports_bottom -sides 4
+create_pin_constraint -type individual -ports $ports_left -sides 1
 
-set_signal_io_constraints -io_guide_object io_ring.right \
-    -constraint "{ {order_only} $pads_right }"
+create_pin_constraint -type individual -ports [get_ports *clk_i] -width 0.1 -length 0.4
 
-set_signal_io_constraints -io_guide_object io_ring.bottom \
-    -constraint "{ {order_only} $pads_bottom }"
-
-set_signal_io_constraints -io_guide_object io_ring.left \
-    -constraint "{ {order_only} $pads_left }"
-
-# 4. Place the IOs and add fillers
-place_io
-
-create_io_filler_cells -reference_cells {gf180mcu_fd_io__fill10 gf180mcu_fd_io__fill5 gf180mcu_fd_io__fill1} -overlap_cells gf180mcu_fd_io__fillnc
+place_pins -self
 
 shape_blocks
 
