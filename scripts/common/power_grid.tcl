@@ -1,5 +1,5 @@
 ###############################################################################
-# Croc SoC Physical Design Flow
+# Croc SoC Physical Design Flow (Block Level)
 # Author: Nicolás Villegas - Universidad de los Andes, Chile
 # Description: Power Grid Creation and Connection (INCREMENTAL)
 ###############################################################################
@@ -39,27 +39,8 @@ set_pg_strategy main_ring_strategy -core -pattern {{pattern: main_ring_pattern} 
 # ---> COMPILE STEP 1
 compile_pg -strategies main_ring_strategy
 
-
 ##############################################################
-# 2. IO Ring Connection
-##############################################################
-create_pg_macro_conn_pattern io_to_ring -pin_conn_type scattered_pin \
-    -pin_layers {Metal2} -layers {Metal2 Metal2} -width 9.5
-
-set_pg_strategy s_io_to_ring \
-    -macros [get_cells -hierarchical -filter "ref_name =~ gf180mcu_fd_io*"] \
-    -pattern {{name: io_to_ring}{nets: {VDD VSS}}}
-
-set_pg_strategy_via_rule via_io_to_ring -via_rule { \
-    {{{strategies: s_io_to_ring} {layers: {Metal2 Metal5 Metal4}}} \
-     {{existing: ring} {layers: {Metal5 Metal4}}} \
-     {via_master: {Via3_VV Via4_VV}}} \
-}
-
-compile_pg -strategies s_io_to_ring -via_rule via_io_to_ring
-
-##############################################################
-# 5. Macro Scattered Pins Connection
+# 2. Macro Scattered Pins Connection (SRAMs)
 ##############################################################
 create_pg_ring_pattern sram_inner_ring_pat \
     -nets {VDD VSS} \
@@ -90,7 +71,7 @@ set_pg_strategy_via_rule ring_to_macro_vias \
 compile_pg -strategies {sram_inner_ring_strat} -via_rule {ring_to_macro_vias}
 
 ##############################################################
-# 4. Global Power Mesh
+# 3. Global Power Mesh
 ##############################################################
 create_pg_mesh_pattern mesh_pattern_top -via_rule {{intersection: adjacent} {via_master: via_master_mesh_top}} \
     -layers { \
@@ -110,9 +91,8 @@ set_pg_strategy_via_rule via_mesh_to_ring -via_rule { \
 
 compile_pg -strategies mesh_strategy_top -via_rule via_mesh_to_ring
 
-
 ##############################################################
-# 6. Std rail
+# 4. Std rail
 ##############################################################
 create_pg_std_cell_conn_pattern M1_rail -layers {Metal1}
 
