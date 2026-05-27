@@ -9,11 +9,26 @@ open_block read_rtl
 
 set SITE_DEF unit
 
+set target_utilization 0.5
+set slot_width_limit 1050.0 
+set external_gap 15.0
+
+set macro_width [expr {$slot_width_limit - (2 * $external_gap)}]
+
+# TODO: Probably a better way to do this
+redirect -variable area_rpt {report_area}
+regexp {Total cell area:\s+([0-9.]+)} $area_rpt full_match total_cell_area
+
+set required_macro_area [expr {$total_cell_area / $target_utilization}]
+set macro_height [expr {$required_macro_area / $macro_width}]
+
+puts "INFO: Generating Macro with actual dimensions: ${macro_width}x${macro_height} um"
+
 initialize_floorplan \
     -control_type die \
     -shape R \
-    -side_ratio {1 1} \
-    -core_utilization 0.7
+    -side_length "$macro_width $macro_height" \
+    -core_offset 2.0
 
 compile_fusion -to initial_map
 check_design_states -verbose
