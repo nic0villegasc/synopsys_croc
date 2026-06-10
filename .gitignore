@@ -27,3 +27,8 @@ work/
 
 # Avoid committing large compressed output databases/netlists (like those inside outputs_fc/)
 *.gz
+
+# Simmulation outputs
+sim/build/
+sim/waves/
+sim/logs/
