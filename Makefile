@@ -64,7 +64,11 @@ clean:
 # ------------------------------------------------------------------------------
 # Software & Simulation Flow
 # ------------------------------------------------------------------------------
-.PHONY: sw sim sim-vcs clean-sw clean-sim
+.PHONY: sw sim sim-vcs verilate run clean-sw clean-sim
+
+# Default application binary. Override on the command line, e.g.:
+#   make run BIN=sim/sw/bin/test/test_gpio.hex
+BIN ?= sim/sw/bin/helloworld.hex
 
 sw:
 	@echo "[SW] Compiling RISC-V bare-metal software..."
@@ -74,9 +78,20 @@ clean-sw:
 	@echo "[SW] Cleaning software binaries..."
 	@$(MAKE) -C sim/sw clean
 
+# Compile the Verilator hardware model only (re-run after any RTL change).
+verilate:
+	@echo "[SIM] Compiling Verilator hardware model..."
+	@cd sim && BUILD_ONLY=1 bash scripts/run_verilator.sh
+
+# Run a binary on the already-compiled model -- no recompile, near-instant.
+run: sw
+	@echo "[SIM] Running $(BIN) ..."
+	@cd sim && BIN=$(abspath $(BIN)) SKIP_BUILD=1 bash scripts/run_verilator.sh
+
+# Compile + run in one shot (original behavior; defaults to helloworld).
 sim: sw
 	@echo "[SIM] Launching Verilator simulation flow..."
-	@cd sim && bash scripts/run_verilator.sh
+	@cd sim && BIN=$(abspath $(BIN)) bash scripts/run_verilator.sh
 
 sim-vcs: sw
 	@echo "[SIM] Launching VCS simulation flow..."
@@ -105,6 +120,13 @@ help:
 	@echo "  make cts"
 	@echo "  make route"
 	@echo "  make finish"
+	@echo ""
+	@echo "Simulation (Verilator):"
+	@echo "  make sim                       – Compile + run (defaults to helloworld)"
+	@echo "  make sim BIN=<path/to.hex>     – Compile + run a specific application"
+	@echo "  make verilate                  – Compile the HW model only (after RTL changes)"
+	@echo "  make run BIN=<path/to.hex>     – Run an app on the compiled model (no recompile)"
+	@echo "  make clean-sim                 – Remove the simulation build directory"
 	@echo ""
 	@echo "GUI / Interactive Commands:"
 	@echo "  make open_<step> – Open a specific block in terminal mode (e.g., make open_floorplan)"
