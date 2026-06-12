@@ -1,6 +1,6 @@
-# Croc SoC - Fusion Compiler SYNTHESIS flist (GF180MCU)
-# GF180 tech cells, ASIC defines, no testbench. Top: croc_chip
-# Paths are relative to this file's location (repo root).
+# Croc SoC - Verilator SIMULATION flist
+# Behavioral (generic) tech cells + testbench/VIP. Top: tb_croc_soc
+# Paths are relative to this file's location (repo root). Invoke with: -F croc_sim.flist
 
 # ---- include dirs ----
 +incdir+rtl/apb/include
@@ -9,22 +9,19 @@
 +incdir+rtl/idma/include
 +incdir+rtl/obi/include
 
-# ---- defines (ASIC / synthesis) ----
-+define+TARGET_ASIC
+# ---- defines (simulation) ----
 +define+TARGET_FLIST
-+define+TARGET_GF180
 +define+TARGET_RTL
 +define+TARGET_SYNTHESIS
-+define+SYNTHESIS=1
++define+TARGET_VERILATOR
++define+VERILATOR=1
 +define+COMMON_CELLS_ASSERTS_OFF=1
-# NOTE: your original synthesis flist also defined VERILATOR=1. That is unusual
-# for a Fusion Compiler run and can make RTL pick Verilator-specific code paths.
-# Left out here intentionally; re-add the next line only if FC elaboration needs it:
-# +define+VERILATOR=1
 
-# ---- GF180 tech cells (hard-macro SRAM is a black box read from PDK libs) ----
-rtl/tech_cells/gf180/tc_clk.sv
-rtl/tech_cells/gf180/tc_sram.sv
+# ---- verification helpers + generic (behavioral) tech cells ----
+rtl/common_verification/clk_rst_gen.sv
+rtl/tech_cells_generic/tc_sram.sv
+rtl/tech_cells_generic/tc_sram_impl.sv
+rtl/tech_cells_generic/tc_clk.sv
 
 # ---- common_cells ----
 rtl/common_cells/binary_to_gray.sv
@@ -188,6 +185,9 @@ rtl/riscv-dbg/dm_top.sv
 rtl/riscv-dbg/dmi_jtag.sv
 rtl/riscv-dbg/dm_obi_top.sv
 
+# ---- riscv-dbg JTAG/DMI sim VIP (was your missing 'riscv_dbg_simple') ----
+rtl/riscv-dbg/tb/jtag_test_simple.sv
+
 # ---- packages + soc ----
 rtl/croc_pkg.sv
 rtl/user_pkg.sv
@@ -206,3 +206,8 @@ rtl/croc_domain.sv
 rtl/user_domain.sv
 rtl/croc_soc.sv
 rtl/croc_chip.sv
+
+# ---- testbench (sim only) ----
+rtl/test/tb_croc_pkg.sv
+rtl/test/croc_vip.sv
+rtl/test/tb_croc_soc.sv

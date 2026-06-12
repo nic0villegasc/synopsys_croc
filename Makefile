@@ -62,6 +62,31 @@ clean:
 	@echo "Cleaned work and logs directories."
 
 # ------------------------------------------------------------------------------
+# Software & Simulation Flow
+# ------------------------------------------------------------------------------
+.PHONY: sw sim sim-vcs clean-sw clean-sim
+
+sw:
+	@echo "[SW] Compiling RISC-V bare-metal software..."
+	@$(MAKE) -C sim/sw
+
+clean-sw:
+	@echo "[SW] Cleaning software binaries..."
+	@$(MAKE) -C sim/sw clean
+
+sim: sw
+	@echo "[SIM] Launching Verilator simulation flow..."
+	@cd sim && bash scripts/run_verilator.sh
+
+sim-vcs: sw
+	@echo "[SIM] Launching VCS simulation flow..."
+	@cd sim && bash scripts/run_vcs.sh
+
+clean-sim:
+	@echo "[SIM] Cleaning simulation builds..."
+	@rm -rf sim/build/*
+
+# ------------------------------------------------------------------------------
 # Help Menu
 # ------------------------------------------------------------------------------
 .PHONY: help
