@@ -89,7 +89,7 @@ run: sw
 	@cd sim && BIN=$(abspath $(BIN)) SKIP_BUILD=1 bash scripts/run_verilator.sh
 
 # Compile + run in one shot (original behavior; defaults to helloworld).
-sim: sw
+sim:
 	@echo "[SIM] Launching Verilator simulation flow..."
 	@cd sim && BIN=$(abspath $(BIN)) bash scripts/run_verilator.sh
 
