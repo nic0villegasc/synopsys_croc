@@ -9,7 +9,7 @@ BUILD_DIR="$ROOT/sim/build/verilator"
 SIM_BIN="$BUILD_DIR/obj_dir/Vtb_croc_soc"
 
 # Which hex to load. Priority: CLI arg > BIN env > HEX env > helloworld default.
-HEX="${1:-${BIN:-${HEX:-$ROOT/sim/sw/bin/helloworld.hex}}}"
+HEX="${1:-${BIN:-${HEX:-$ROOT/sim/sw/hello_world/bin/helloworld.hex}}}"
 case "$HEX" in
   /*) ;;                  # already absolute
   *)  HEX="$PWD/$HEX" ;;  # relative -> absolute w.r.t. current shell

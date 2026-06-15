@@ -48,7 +48,7 @@ module tb_croc_soc #(
       $display("Running program: %s", binary_path);
     end else begin
       $display("No binary path provided. Running helloworld.");
-      binary_path = "../sw/bin/helloworld.hex";
+      binary_path = "../sw/hello_world/bin/helloworld.hex";
     end
   end
 

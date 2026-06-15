@@ -68,7 +68,7 @@ clean:
 
 # Default application binary. Override on the command line, e.g.:
 #   make run BIN=sim/sw/bin/test/test_gpio.hex
-BIN ?= sim/sw/bin/helloworld.hex
+BIN ?= sim/sw/hello_world/bin/helloworld.hex
 
 sw:
 	@echo "[SW] Compiling RISC-V bare-metal software..."
