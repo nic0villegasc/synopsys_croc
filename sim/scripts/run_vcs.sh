@@ -24,8 +24,9 @@ if [ "${SKIP_BUILD:-0}" != "1" ]; then
   
   echo "=> Compiling cycle-accurate hardware model with VCS..."
   vcs -sverilog -full64 \
-    -j \
-    -file "$ROOT/croc_sim.flist" \
+    -j 4\
+    -F "$ROOT/croc_sim_vcs.flist" \
+    -timescale=1ns/1ps \
     -top tb_croc_soc \
     -debug_access+pp \
     -o "$SIM_BIN"

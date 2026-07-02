@@ -1,0 +1,70 @@
+###############################################################################
+# Automated QoR and Validation Reporting Engine
+###############################################################################
+puts "================================================================"
+puts "INFO: Executing Automated Reporting Engine for stage: $ACTIVE_STEP"
+puts "================================================================"
+
+# Establish target directory (Makefile already created it, but this ensures safety)
+set REPORT_DIR "../reports/${ACTIVE_STEP}"
+file mkdir $REPORT_DIR
+
+# -----------------------------------------------------------------------------
+# Global Must-Haves (Run for everything except RTL read-in)
+# -----------------------------------------------------------------------------
+if {$ACTIVE_STEP != "01_read_rtl"} {
+    puts "INFO: Generating Global QoR Snapshot..."
+    create_qor_snapshot -name ${ACTIVE_STEP}_snapshot
+    redirect -file ${REPORT_DIR}/global_qor_snapshot.rpt { report_qor_snapshot -name ${ACTIVE_STEP}_snapshot }
+}
+
+# -----------------------------------------------------------------------------
+# Stage-Specific Validation (Verified via FC Man Pages)
+# -----------------------------------------------------------------------------
+puts "INFO: Running targeted metrics for $ACTIVE_STEP..."
+
+switch $ACTIVE_STEP {
+
+    "01_read_rtl" {
+        redirect -file ${REPORT_DIR}/check_design.rpt { check_design }
+        redirect -file ${REPORT_DIR}/report_unbound.rpt { check_design -checks unbound }
+        redirect -file ${REPORT_DIR}/check_timing.rpt { check_timing }
+    }
+
+    "02_floorplan" {
+        # PG checks use their native file-output arguments per the man pages
+        check_pg_drc -no_gui -output ${REPORT_DIR}/check_pg_drc.rpt
+        check_pg_connectivity -write_connectivity_file ${REPORT_DIR}/check_pg_connectivity.rpt
+        
+        redirect -file ${REPORT_DIR}/report_congestion.rpt { report_congestion }
+        redirect -file ${REPORT_DIR}/check_legality.rpt { check_legality }
+    }
+
+    "03_synthesis" {
+        redirect -file ${REPORT_DIR}/report_qor_summary.rpt { report_qor -summary }
+        redirect -file ${REPORT_DIR}/check_legality.rpt { check_legality }
+        redirect -file ${REPORT_DIR}/report_constraints.rpt { report_constraints -all_violators }
+        redirect -file ${REPORT_DIR}/report_timing_worst.rpt { report_timing -delay_type max -max_paths 50 }
+    }
+
+    "04_cts" {
+        redirect -file ${REPORT_DIR}/report_clock_qor.rpt { report_clock_qor }
+        redirect -file ${REPORT_DIR}/check_clock_trees.rpt { check_clock_trees }
+        redirect -file ${REPORT_DIR}/report_clock_timing.rpt { report_clock_timing -type skew }
+    }
+
+    "05_route" {
+        redirect -file ${REPORT_DIR}/check_routes.rpt { check_routes }
+        redirect -file ${REPORT_DIR}/report_wirelength.rpt { report_wirelength }
+        redirect -file ${REPORT_DIR}/report_design_routing.rpt { report_design -routing }
+    }
+
+    "06_finish" {
+        catch { redirect -file ${REPORT_DIR}/signoff_check_drc.rpt { signoff_check_drc } }
+        catch { redirect -file ${REPORT_DIR}/report_signal_em.rpt { report_signal_em } }
+    }
+
+    default {
+        puts "WARNING: No stage-specific reporting mapped for $ACTIVE_STEP."
+    }
+}
