@@ -376,6 +376,33 @@ module croc_vip #(
     end
   end
 
+  // ---------------------------------------------------------
+  // DEBUG: Verify MEM.TXT is visible and formatted correctly
+  // ---------------------------------------------------------
+  initial begin
+    // Create a small temporary array to hold the first 16 bytes
+    automatic logic [7:0] debug_mem [0:15]; 
+    
+    // Initialize to X so we know if the read fails
+    for(int i=0; i<16; i++) debug_mem[i] = 8'hXX;
+
+    // Delay slightly to ensure file system is ready
+    #1ns; 
+    
+    $display("==================================================");
+    $display("@%t | [DEBUG] Attempting to read MEM.TXT...", $time);
+    
+    // Read the file exactly as the flash model does
+    $readmemh("MEM.TXT", debug_mem);
+    
+    $display("@%t | [DEBUG] Read successful. Checking first 4 bytes:", $time);
+    $display("@%t | [DEBUG] Byte 0: %h (Expected: 6F)", $time, debug_mem[0]);
+    $display("@%t | [DEBUG] Byte 1: %h (Expected: 00)", $time, debug_mem[1]);
+    $display("@%t | [DEBUG] Byte 2: %h (Expected: C0)", $time, debug_mem[2]);
+    $display("@%t | [DEBUG] Byte 3: %h (Expected: 00)", $time, debug_mem[3]);
+    $display("==================================================");
+  end
+
   ////////////
   //  GPIO  //
   ////////////
