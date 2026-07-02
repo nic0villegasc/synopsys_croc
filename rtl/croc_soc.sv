@@ -23,6 +23,12 @@ module croc_soc import croc_pkg::*; #(
   input  logic uart_rx_i,
   output logic uart_tx_o,
 
+  output logic       qspi_clk_o,
+  output logic [3:0] qspi_sd_o,
+  input  logic [3:0] qspi_sd_i,
+  output logic [3:0] qspi_sd_en_o,
+  output logic [2:0] qspi_csn_o,
+
   input  logic [GpioCount-1:0] gpio_i,       // Input from GPIO pins
   output logic [GpioCount-1:0] gpio_o,       // Output to GPIO pins
   output logic [GpioCount-1:0] gpio_out_en_o // Output enable signal; 0 -> input, 1 -> output
@@ -100,7 +106,13 @@ user_domain #(
   .user_mgr_obi_rsp_i ( user_mgr_obi_rsp ),
 
   .gpio_in_sync_i ( gpio_in_sync ),
-  .interrupts_o   ( interrupts   )
+  .interrupts_o   ( interrupts   ),
+
+  .qspi_clk_o  ( qspi_clk_o  ),
+  .qspi_sd_o   ( qspi_sd_o   ),
+  .qspi_sd_i   ( qspi_sd_i   ),
+  .qspi_sd_en_o ( qspi_sd_en_o ),
+  .qspi_csn_o   ( qspi_csn_o   )
 );
 
 endmodule

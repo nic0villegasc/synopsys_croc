@@ -21,7 +21,13 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
   input  mgr_obi_rsp_t user_mgr_obi_rsp_i,
 
   input  logic [      GpioCount-1:0] gpio_in_sync_i, // synchronized GPIO inputs
-  output logic [NumExternalIrqs-1:0] interrupts_o    // interrupts to core
+  output logic [NumExternalIrqs-1:0] interrupts_o,    // interrupts to core
+
+  output logic       qspi_clk_o,
+  output logic [3:0] qspi_sd_o,
+  input  logic [3:0] qspi_sd_i,
+  output logic [3:0] qspi_sd_en_o,
+  output logic [2:0] qspi_csn_o
 );
 
   assign interrupts_o = '0;
@@ -54,12 +60,16 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
   // OBI bus to your design
   sbr_obi_req_t user_design_obi_req;
   sbr_obi_rsp_t user_design_obi_rsp;
+  sbr_obi_req_t user_qspi_obi_req;
+  sbr_obi_rsp_t user_qspi_obi_rsp;
 
   // Fanout into more readable signals
   assign user_error_obi_req               = all_user_sbr_obi_req[UserError];
   assign all_user_sbr_obi_rsp[UserError]  = user_error_obi_rsp;
   assign user_design_obi_req              = all_user_sbr_obi_req[UserDesign];
   assign all_user_sbr_obi_rsp[UserDesign] = user_design_obi_rsp;
+  assign user_qspi_obi_req             = all_user_sbr_obi_req[UserQSpi];
+  assign all_user_sbr_obi_rsp[UserQSpi] = user_qspi_obi_rsp;
 
 
   //-----------------------------------------------------------------------------------------------
@@ -107,21 +117,22 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
 // User Subordinates
 //-------------------------------------------------------------------------------------------------
 
-  ///////////////////////////////////
-  // Replace this with your Design //
-  ///////////////////////////////////
-  obi_err_sbr #(
-    .ObiCfg      ( SbrObiCfg     ),
-    .obi_req_t   ( sbr_obi_req_t ),
-    .obi_rsp_t   ( sbr_obi_rsp_t ),
-    .NumMaxTrans ( 1             ),
-    .RspData     ( 32'hBADCAB1E  )
-  ) i_your_design_goes_here (
+  obi_qspi #(
+    .ObiCfg    ( SbrObiCfg     ),
+    .obi_req_t ( sbr_obi_req_t ),
+    .obi_rsp_t ( sbr_obi_rsp_t ),
+    .NumCs     ( 3             )
+  ) i_obi_qspi (
     .clk_i,
     .rst_ni,
-    .testmode_i ( testmode_i          ),
-    .obi_req_i  ( user_design_obi_req ),
-    .obi_rsp_o  ( user_design_obi_rsp )
+    .testmode_i,
+    .obi_req_i    ( user_qspi_obi_req ),
+    .obi_rsp_o    ( user_qspi_obi_rsp ),
+    .spi_clk_o    ( qspi_clk_o    ),
+    .spi_sd_o     ( qspi_sd_o     ),
+    .spi_sd_i     ( qspi_sd_i     ),
+    .spi_sd_en_o  ( qspi_sd_en_o  ),
+    .spi_csn_o    ( qspi_csn_o    )
   );
 
   // Error Subordinate

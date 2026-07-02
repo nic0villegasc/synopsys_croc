@@ -85,6 +85,44 @@ module tb_croc_soc #(
   );
 
   ////////////
+  // Flash  //
+  ////////////
+
+  // 1. Declare tri-state wires for the bi-directional QSPI bus
+  wire qspi_io0;
+  wire qspi_io1;
+  wire qspi_io2;
+  wire qspi_io3;
+  logic       qspi_clk_o;
+  logic [3:0] qspi_sd_o;
+  logic [3:0] qspi_sd_i;
+  logic [3:0] qspi_sd_en_o;
+  logic [2:0] qspi_csn_o;
+
+  // 2. Drive the wires from the SoC when output enable is active (1)
+  // Assuming qspi_sd_en_o operates like gpio_out_en_o where 1 -> output
+  assign qspi_io0 = qspi_sd_en_o[0] ? qspi_sd_o[0] : 1'bz;
+  assign qspi_io1 = qspi_sd_en_o[1] ? qspi_sd_o[1] : 1'bz;
+  assign qspi_io2 = qspi_sd_en_o[2] ? qspi_sd_o[2] : 1'bz;
+  assign qspi_io3 = qspi_sd_en_o[3] ? qspi_sd_o[3] : 1'bz;
+
+  // 3. Feed the current state of the wires back into the SoC inputs
+  assign qspi_sd_i[0] = qspi_io0;
+  assign qspi_sd_i[1] = qspi_io1;
+  assign qspi_sd_i[2] = qspi_io2;
+  assign qspi_sd_i[3] = qspi_io3;
+
+  // 4. Instantiate the Flash Memory Model
+  W25Q128JWxxIM i_qspi_flash (
+    .CSn   ( qspi_csn_o[0] ),
+    .CLK   ( qspi_clk_o    ),
+    .DIO   ( qspi_io0      ), // IO0
+    .DO    ( qspi_io1      ), // IO1
+    .WPn   ( qspi_io2      ), // IO2
+    .HOLDn ( qspi_io3      )  // IO3
+  );
+
+  ////////////
   //  DUT   //
   ////////////
 
@@ -109,7 +147,13 @@ module tb_croc_soc #(
     .uart_tx_o     ( uart_tx     ),
     .gpio_i        ( gpio_in     ),
     .gpio_o        ( gpio_out    ),
-    .gpio_out_en_o ( gpio_out_en )
+    .gpio_out_en_o ( gpio_out_en ),
+
+    .qspi_clk_o    ( qspi_clk_o   ),
+    .qspi_sd_o     ( qspi_sd_o    ),
+    .qspi_sd_i     ( qspi_sd_i    ),
+    .qspi_sd_en_o  ( qspi_sd_en_o ),
+    .qspi_csn_o    ( qspi_csn_o   )
   );
 
   /////////////////

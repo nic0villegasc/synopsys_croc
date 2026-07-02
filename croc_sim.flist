@@ -172,6 +172,11 @@ rtl/obi_uart/obi_uart_tx.sv
 rtl/obi_uart/obi_uart_register.sv
 rtl/obi_uart/obi_uart.sv
 
+# ---- obi_qspi & flash model ----
+rtl/obi_qspi/qqspi.v
+rtl/obi_qspi/obi_qspi.sv
+rtl/obi_qspi/flash_model/W25Q128JWxxIM_V1.2_VCS.v
+
 # ---- riscv-dbg (synthesizable RTL) ----
 rtl/riscv-dbg/dm_pkg.sv
 rtl/riscv-dbg/debug_rom/debug_rom.sv
@@ -205,7 +210,6 @@ rtl/obi_timer/obi_timer.sv
 rtl/croc_domain.sv
 rtl/user_domain.sv
 rtl/croc_soc.sv
-rtl/croc_chip.sv
 
 # ---- testbench (sim only) ----
 rtl/test/tb_croc_pkg.sv
