@@ -93,9 +93,21 @@ sim:
 	@echo "[SIM] Launching Verilator simulation flow..."
 	@cd sim && BIN=$(abspath $(BIN)) bash scripts/run_verilator.sh
 
+# Compile the VCS hardware model (elaboration phase).
+vcs-compile:
+	@echo "[SIM] Compiling VCS hardware model..."
+	@cd sim && BUILD_ONLY=1 bash scripts/run_vcs.sh
+
+# Run a binary on the already-compiled VCS model.
+# Assumes the simulation binary (e.g., simv) exists from a previous vcs-compile.
+run-vcs: sw
+	@echo "[SIM] Running $(BIN) on VCS..."
+	@cd sim && BIN=$(abspath $(BIN)) SKIP_BUILD=1 bash scripts/run_vcs.sh
+
+# Compile + run VCS in one shot.
 sim-vcs: sw
-	@echo "[SIM] Launching VCS simulation flow..."
-	@cd sim && bash scripts/run_vcs.sh
+	@echo "[SIM] Launching full VCS simulation flow..."
+	@cd sim && BIN=$(abspath $(BIN)) bash scripts/run_vcs.sh
 
 clean-sim:
 	@echo "[SIM] Cleaning simulation builds..."
