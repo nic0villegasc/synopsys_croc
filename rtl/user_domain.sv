@@ -118,11 +118,11 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
 //-------------------------------------------------------------------------------------------------
 
   obi_qspi #(
-    .ObiCfg    ( SbrObiCfg     ),
-    .obi_req_t ( sbr_obi_req_t ),
-    .obi_rsp_t ( sbr_obi_rsp_t ),
-    .NumCs     ( 3             ),
-    .WindowBase ( user_pkg::UserQSpiAddrBase )
+    .ObiCfg     ( SbrObiCfg                  ),
+    .obi_req_t  ( sbr_obi_req_t              ),
+    .obi_rsp_t  ( sbr_obi_rsp_t              ),
+    .NumCs      ( 3                          ),
+    .WindowBase ( user_pkg::UserQSpiAddrBase ) // window-relative offset = addr - base
   ) i_obi_qspi (
     .clk_i,
     .rst_ni,
@@ -134,6 +134,25 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
     .spi_sd_i     ( qspi_sd_i     ),
     .spi_sd_en_o  ( qspi_sd_en_o  ),
     .spi_csn_o    ( qspi_csn_o    )
+  );
+
+  // UserDesign placeholder.
+  // Nothing was driving `user_design_obi_rsp`, so ANY access decoded to UserDesign
+  // returned X on rdata/gnt/rvalid. Terminate it with an error subordinate so a stray
+  // access gets a clean OBI error instead of X. Replace this block with your real design
+  // module when you add one (wire it to user_design_obi_req / user_design_obi_rsp).
+  obi_err_sbr #(
+    .ObiCfg      ( SbrObiCfg     ),
+    .obi_req_t   ( sbr_obi_req_t ),
+    .obi_rsp_t   ( sbr_obi_rsp_t ),
+    .NumMaxTrans ( 1             ),
+    .RspData     ( 32'hBADCAB1E  )
+  ) i_user_design_placeholder (
+    .clk_i,
+    .rst_ni,
+    .testmode_i ( testmode_i          ),
+    .obi_req_i  ( user_design_obi_req ),
+    .obi_rsp_o  ( user_design_obi_rsp )
   );
 
   // Error Subordinate

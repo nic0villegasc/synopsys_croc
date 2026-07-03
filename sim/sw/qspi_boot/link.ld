@@ -13,7 +13,7 @@ ENTRY(_start)
 MEMORY
 {
 	/* QSPI Flash region for read-only code and data */
-	QSPI (rx) : ORIGIN = 0x21000000, LENGTH = 16M /* 128Mb = 16MB */
+	QSPI (rx) : ORIGIN = 0x20000000, LENGTH = 16M /* 128Mb = 16MB */
 
 	/* on-chip SRAM region used for writable data and stack */
 	SRAM (rw) : ORIGIN = 0x10000000, LENGTH = 16K
