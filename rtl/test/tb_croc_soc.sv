@@ -210,10 +210,10 @@ module tb_croc_soc #(
     `ifdef TRACE_WAVE
       `ifdef VERILATOR
         $dumpfile("croc.fst");
-        $dumpvars(1, i_croc_soc);
+        $dumpvars(0, i_croc_soc);
       `else
         $dumpfile("croc.vcd");
-        $dumpvars(1, i_croc_soc);
+        $dumpvars(0, i_croc_soc);
       `endif
     `endif
   end
