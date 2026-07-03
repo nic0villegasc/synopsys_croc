@@ -121,7 +121,8 @@ module user_domain import user_pkg::*; import croc_pkg::*; #(
     .ObiCfg    ( SbrObiCfg     ),
     .obi_req_t ( sbr_obi_req_t ),
     .obi_rsp_t ( sbr_obi_rsp_t ),
-    .NumCs     ( 3             )
+    .NumCs     ( 3             ),
+    .WindowBase ( user_pkg::UserQSpiAddrBase )
   ) i_obi_qspi (
     .clk_i,
     .rst_ni,

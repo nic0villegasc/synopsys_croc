@@ -40,7 +40,8 @@ module obi_qspi #(
   /// OBI response type (= sbr_obi_rsp_t).
   parameter type obi_rsp_t = logic,
   /// Number of physical chip-selects driven by qqspi (must be 3 for this map).
-  parameter int unsigned NumCs = 3
+  parameter int unsigned NumCs = 3,
+  parameter logic [31:0] WindowBase = 32'h2100_0000
 ) (
   input  logic     clk_i,
   input  logic     rst_ni,
@@ -104,7 +105,7 @@ module obi_qspi #(
 
   // Window-relative byte address (window is 32 MB-aligned => low 25 bits = offset).
   logic [24:0] dec_addr;
-  assign dec_addr = obi_req_i.a.addr[24:0];
+  assign dec_addr = 25'(obi_req_i.a.addr - WindowBase);
 
   logic [NumCs-1:0] ce_ctrl_dec;
   logic             psram_dec;
