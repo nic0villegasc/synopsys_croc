@@ -101,10 +101,10 @@ module tb_croc_soc #(
 
   // 2. Drive the wires from the SoC when output enable is active (1)
   // Assuming qspi_sd_en_o operates like gpio_out_en_o where 1 -> output
-  assign qspi_io0 = qspi_sd_en_o[0] ? qspi_sd_o[0] : 1'bz;
-  assign qspi_io1 = qspi_sd_en_o[1] ? qspi_sd_o[1] : 1'bz;
-  assign qspi_io2 = qspi_sd_en_o[2] ? qspi_sd_o[2] : 1'bz;
-  assign qspi_io3 = qspi_sd_en_o[3] ? qspi_sd_o[3] : 1'bz;
+  assign #1 qspi_io0 = qspi_sd_en_o[0] ? qspi_sd_o[0] : 1'bz;
+  assign #1 qspi_io1 = qspi_sd_en_o[1] ? qspi_sd_o[1] : 1'bz;
+  assign #1 qspi_io2 = qspi_sd_en_o[2] ? qspi_sd_o[2] : 1'bz;
+  assign #1 qspi_io3 = qspi_sd_en_o[3] ? qspi_sd_o[3] : 1'bz;
 
   // 3. Feed the current state of the wires back into the SoC inputs
   assign qspi_sd_i[0] = qspi_io0;
