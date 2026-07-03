@@ -112,6 +112,12 @@ module tb_croc_soc #(
   assign qspi_sd_i[2] = qspi_io2;
   assign qspi_sd_i[3] = qspi_io3;
 
+  // Add pull-ups to prevent floating pins during High-Z (especially HOLDn/WPn)
+  pullup(qspi_io0);
+  pullup(qspi_io1);
+  pullup(qspi_io2);
+  pullup(qspi_io3);
+
   // 4. Instantiate the Flash Memory Model
   W25Q128JWxxIM i_qspi_flash (
     .CSn   ( qspi_csn_o[0] ),
