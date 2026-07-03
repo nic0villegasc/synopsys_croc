@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Translate absolute .hex addresses to 0-based MEM.TXT for Verilog $readmemh.")
     parser.add_argument("input_hex", help="Path to the compiled input .hex file")
     parser.add_argument("--output", default="MEM.TXT", help="Path to the output file (default: MEM.TXT)")
-    parser.add_argument("--base", type=lambda x: int(x, 16), default="21000000", help="Base address in hex to subtract (default: 21000000)")
+    parser.add_argument("--base", type=lambda x: int(x, 16), default="20000000", help="Base address in hex to subtract (default: 21000000)")
     
     args = parser.parse_args()
     
