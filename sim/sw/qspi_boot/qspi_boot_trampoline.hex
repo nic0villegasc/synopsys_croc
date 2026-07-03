@@ -1,3 +1,5 @@
 @10000000
-B7 02 00 20 
-67 80 02 00
+B7 02 00 20    ; lui t0, 0x20000
+67 80 02 00    ; jr  t0
+6F 00 00 00    ; j . (0x0000006F = jal x0,0)  ← gives the prefetcher a defined word
+6F 00 00 00    ; j .
