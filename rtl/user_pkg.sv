@@ -5,14 +5,15 @@
 // Authors:
 // - Philippe Sauter <phsauter@iis.ee.ethz.ch>
 
+`include "register_interface/typedef.svh"
 `include "obi/typedef.svh"
 
 package user_pkg;
 
-  //////////////////
-  // User Manager //
-  //////////////////
-
+  ////////////////////////////////
+  // User Manager Address maps //
+  ///////////////////////////////
+  
   // None
 
 

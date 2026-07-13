@@ -11,8 +11,6 @@
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
-`include "common_cells/assertions.svh"
-
 /// A stream interface with custom payload of type `payload_t`.
 /// Handshaking rules as defined in the AXI standard.
 interface STREAM_DV #(
@@ -42,8 +40,10 @@ interface STREAM_DV #(
   );
 
   // Make sure that the handshake and payload is stable
+  `ifndef SYNTHESIS
   `ifndef COMMON_CELLS_ASSERTS_OFF
-  `ASSERT(data_unstable, (valid && !ready |=> $stable(data)), clk_i, 1'b0)
-  `ASSERT(valid_unstable, (valid && !ready |=> valid), clk_i, 1'b0)
+  assert property (@(posedge clk_i) (valid && !ready |=> $stable(data)));
+  assert property (@(posedge clk_i) (valid && !ready |=> valid));
+  `endif
   `endif
 endinterface

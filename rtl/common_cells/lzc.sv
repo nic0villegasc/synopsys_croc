@@ -2,12 +2,10 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-`include "common_cells/assertions.svh"
-
 /// A trailing zero counter / leading zero counter.
 /// Set MODE to 0 for trailing zero counter => cnt_o is the number of trailing zeros (from the LSB)
 /// Set MODE to 1 for leading zero counter  => cnt_o is the number of leading zeros  (from the MSB)
-/// If the input does not contain a one, `empty_o` is asserted. Additionally `cnt_o` contains
+/// If the input does not contain a zero, `empty_o` is asserted. Additionally `cnt_o` contains
 /// the maximum number of zeros - 1. For example:
 ///   in_i = 000_0000, empty_o = 1, cnt_o = 6 (mode = 0)
 ///   in_i = 000_0001, empty_o = 0, cnt_o = 0 (mode = 0)
@@ -32,11 +30,7 @@ module lzc #(
   output logic                 empty_o
 );
 
-  `ifndef COMMON_CELLS_ASSERTS_OFF
-    `ASSERT_INIT(width_0, WIDTH > 0, "input must be at least one bit wide")
-  `endif
-
-  if (WIDTH <= 1) begin : gen_degenerate_lzc
+  if (WIDTH == 1) begin : gen_degenerate_lzc
 
     assign cnt_o[0] = !in_i[0];
     assign empty_o = !in_i[0];
@@ -45,22 +39,25 @@ module lzc #(
 
     localparam int unsigned NumLevels = $clog2(WIDTH);
 
+  `ifndef COMMON_CELLS_ASSERTS_OFF
+    `ifndef SYNTHESIS
+    initial begin
+      assert(WIDTH > 0) else $fatal(1, "input must be at least one bit wide");
+    end
+    `endif
+  `endif
+
     logic [WIDTH-1:0][NumLevels-1:0] index_lut;
-    logic [2**NumLevels-1:0] sel_nodes                  /* verilator split_var */;
-    logic [2**NumLevels-1:0][NumLevels-1:0] index_nodes /* verilator split_var */;
+    logic [2**NumLevels-1:0] sel_nodes;
+    logic [2**NumLevels-1:0][NumLevels-1:0] index_nodes;
 
     logic [WIDTH-1:0] in_tmp;
 
-    if (MODE) begin : g_flip
-      // Mode 1 (leading zero): flip input vector
-      always_comb begin : flip_vector
-        for (int unsigned i = 0; i < WIDTH; i++) begin
-          in_tmp[i] = in_i[WIDTH-1-i];
-        end
+    // reverse vector if required
+    always_comb begin : flip_vector
+      for (int unsigned i = 0; i < WIDTH; i++) begin
+        in_tmp[i] = (MODE) ? in_i[WIDTH-1-i] : in_i[i];
       end
-    end else begin : g_no_flip
-      // Mode 0 (trailing zero)
-      assign in_tmp = in_i;
     end
 
     for (genvar j = 0; unsigned'(j) < WIDTH; j++) begin : g_index_lut
@@ -103,5 +100,14 @@ module lzc #(
     assign empty_o = NumLevels > unsigned'(0) ? ~sel_nodes[0] : ~(|in_i);
 
   end : gen_lzc
+
+`ifndef SYNTHESIS
+`ifndef COMMON_CELLS_ASSERTS_OFF
+  initial begin: validate_params
+    assert (WIDTH >= 1)
+      else $fatal(1, "The WIDTH must at least be one bit wide!");
+  end
+`endif
+`endif
 
 endmodule : lzc

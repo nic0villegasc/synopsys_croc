@@ -1,4 +1,3 @@
-// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -166,15 +165,11 @@ module cve2_ex_block #(
       .valid_o           (multdiv_valid),
       .multdiv_result_o  (multdiv_result)
     );
-  end else begin : gen_multdiv_tieoff
-    // tie off signals when multiplier/divider is not present
+  end else begin
     assign multdiv_alu_operand_a = '0;
     assign multdiv_alu_operand_b = '0;
-    assign multdiv_valid         = '0;
     assign multdiv_result        = '0;
-    assign multdiv_imd_val_d[0]  = '0;
-    assign multdiv_imd_val_d[1]  = '0;
-    assign multdiv_imd_val_we    = '0;
+    assign multdiv_valid         = '0;
   end
 
   // Multiplier/divider may require multiple cycles. The ALU output is valid in the same cycle

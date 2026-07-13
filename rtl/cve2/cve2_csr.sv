@@ -1,4 +1,3 @@
-// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
@@ -7,7 +6,7 @@
  * Control / status register primitive
  */
 
-`include "common_cells/assertions.svh"
+`include "lowrisc_prim/prim_assert.svh"
 
 module cve2_csr #(
   parameter int unsigned    Width      = 32,
@@ -53,6 +52,6 @@ module cve2_csr #(
     assign rd_error_o = 1'b0;
   end
 
-  `ASSERT_KNOWN(CVE2CSREnValid, wr_en_i)
+  `ASSERT_KNOWN(IbexCSREnValid, wr_en_i)
 
 endmodule

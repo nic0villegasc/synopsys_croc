@@ -1,4 +1,3 @@
-// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -12,7 +11,7 @@
  * assertions only.
  */
 
-`include "common_cells/assertions.svh"
+`include "lowrisc_prim/prim_assert.svh"
 
 module cve2_compressed_decoder (
   input  logic        clk_i,
@@ -284,21 +283,21 @@ module cve2_compressed_decoder (
   ////////////////
 
   // The valid_i signal used to gate below assertions must be known.
-  `ASSERT_KNOWN(CVE2InstrValidKnown, valid_i)
+  `ASSERT_KNOWN(IbexInstrValidKnown, valid_i)
 
   // Selectors must be known/valid.
-  `ASSERT(CVE2InstrLSBsKnown, valid_i |->
+  `ASSERT(IbexInstrLSBsKnown, valid_i |->
       !$isunknown(instr_i[1:0]))
-  `ASSERT(CVE2C0Known1, (valid_i && (instr_i[1:0] == 2'b00)) |->
+  `ASSERT(IbexC0Known1, (valid_i && (instr_i[1:0] == 2'b00)) |->
       !$isunknown(instr_i[15:13]))
-  `ASSERT(CVE2C1Known1, (valid_i && (instr_i[1:0] == 2'b01)) |->
+  `ASSERT(IbexC1Known1, (valid_i && (instr_i[1:0] == 2'b01)) |->
       !$isunknown(instr_i[15:13]))
-  `ASSERT(CVE2C1Known2, (valid_i && (instr_i[1:0] == 2'b01) && (instr_i[15:13] == 3'b100)) |->
+  `ASSERT(IbexC1Known2, (valid_i && (instr_i[1:0] == 2'b01) && (instr_i[15:13] == 3'b100)) |->
       !$isunknown(instr_i[11:10]))
-  `ASSERT(CVE2C1Known3, (valid_i &&
+  `ASSERT(IbexC1Known3, (valid_i &&
       (instr_i[1:0] == 2'b01) && (instr_i[15:13] == 3'b100) && (instr_i[11:10] == 2'b11)) |->
       !$isunknown({instr_i[12], instr_i[6:5]}))
-  `ASSERT(CVE2C2Known1, (valid_i && (instr_i[1:0] == 2'b10)) |->
+  `ASSERT(IbexC2Known1, (valid_i && (instr_i[1:0] == 2'b10)) |->
       !$isunknown(instr_i[15:13]))
 
 endmodule

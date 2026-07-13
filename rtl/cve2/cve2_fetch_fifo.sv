@@ -1,4 +1,3 @@
-// Copyright (c) 2025 Eclipse Foundation
 // Copyright lowRISC contributors.
 // Copyright 2018 ETH Zurich and University of Bologna, see also CREDITS.md.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -11,7 +10,7 @@
  * clear_i clears the FIFO for the following cycle, including any new request
  */
 
-`include "common_cells/assertions.svh"
+`include "lowrisc_prim/prim_assert.svh"
 
 module cve2_fetch_fifo #(
   parameter int unsigned NUM_REQS = 2
@@ -242,11 +241,11 @@ module cve2_fetch_fifo #(
   ////////////////
 
   // Must not push and pop simultaneously when FIFO full.
-  `ASSERT(CVE2FetchFifoPushPopFull,
+  `ASSERT(IbexFetchFifoPushPopFull,
       (in_valid_i && pop_fifo) |-> (!valid_q[DEPTH-1] || clear_i))
 
   // Must not push to FIFO when full.
-  `ASSERT(CVE2FetchFifoPushFull,
+  `ASSERT(IbexFetchFifoPushFull,
       (in_valid_i) |-> (!valid_q[DEPTH-1] || clear_i))
 
 endmodule
