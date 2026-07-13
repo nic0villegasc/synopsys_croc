@@ -9,8 +9,8 @@ open_block read_rtl
 
 set SITE_DEF unit
 
-set target_utilization 0.63
-set slot_width_limit 1000.0 
+set target_utilization 0.5
+set slot_width_limit 1050.0 
 set external_gap 15.0
 
 set macro_width [expr {$slot_width_limit - (2 * $external_gap)}]
@@ -64,6 +64,11 @@ set ports_right {
 set ports_bottom {
     jtag_tms_i
     jtag_tck_i
+    qspi_clk_o
+    qspi_sd_o[0] qspi_sd_o[1] qspi_sd_o[2] qspi_sd_o[3]
+    qspi_sd_i[0] qspi_sd_i[1] qspi_sd_i[2] qspi_sd_i[3]
+    qspi_sd_en_o[0] qspi_sd_en_o[1] qspi_sd_en_o[2] qspi_sd_en_o[3]
+    qspi_csn_o[0] qspi_csn_o[1] qspi_csn_o[2]
 }
 
 set ports_left {

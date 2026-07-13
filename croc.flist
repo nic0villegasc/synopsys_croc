@@ -175,6 +175,10 @@ rtl/obi_uart/obi_uart_tx.sv
 rtl/obi_uart/obi_uart_register.sv
 rtl/obi_uart/obi_uart.sv
 
+// ---- obi_qspi ----
+rtl/obi_qspi/qqspi.v
+rtl/obi_qspi/obi_qspi.sv
+
 # ---- riscv-dbg (synthesizable RTL) ----
 rtl/riscv-dbg/dm_pkg.sv
 rtl/riscv-dbg/debug_rom/debug_rom.sv
