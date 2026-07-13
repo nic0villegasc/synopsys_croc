@@ -32,4 +32,7 @@ set GDS_FILE_LIST [glob ${PDK_DIR}/gds/*.gds]
 
 write_gds -merge_files $GDS_FILE_LIST -merge_gds_top_cell $TOP_MODULE -layer_map ${ICC2GDS_LAYERMAP} -long_names top.gds
 
+set ACTIVE_STEP "06_finish"
+source [file dirname [info script]]/common/reporting.tcl
+
 save_block -as finish

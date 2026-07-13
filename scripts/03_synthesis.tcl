@@ -27,4 +27,7 @@ set_lib_cell_purpose -include none [get_lib_cells $SYN_IGNORE_CELLS]
 ###############################################################################
 compile_fusion
 
+set ACTIVE_STEP "03_synthesis"
+source [file dirname [info script]]/common/reporting.tcl
+
 save_block -as synthesis

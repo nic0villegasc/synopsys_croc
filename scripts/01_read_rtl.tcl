@@ -55,5 +55,8 @@ source [file dirname [info script]]/common/mcmm.tcl
 create_utilization_configuration overall  -exclude io_cells
 create_utilization_configuration stdcells -exclude { hard_macros macro_keepouts soft_macros io_cells hard_blockages soft_blockages }
 
+set ACTIVE_STEP "01_read_rtl"
+source [file dirname [info script]]/common/reporting.tcl
+
 save_block -as read_rtl
 print_message_info -ids * -summary
