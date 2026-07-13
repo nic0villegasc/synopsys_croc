@@ -20,4 +20,7 @@ route_auto
 
 route_detail -incremental true
 
+set ACTIVE_STEP "05_route"
+source [file dirname [info script]]/common/reporting.tcl
+
 save_block -as route

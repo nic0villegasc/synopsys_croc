@@ -25,4 +25,7 @@ set_lib_cell_purpose -include cts [get_lib_cells $CTS_CELLS]
 
 clock_opt
 
+set ACTIVE_STEP "04_cts"
+source [file dirname [info script]]/common/reporting.tcl
+
 save_block -as cts

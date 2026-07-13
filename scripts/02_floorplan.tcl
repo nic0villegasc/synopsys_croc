@@ -9,8 +9,8 @@ open_block read_rtl
 
 set SITE_DEF unit
 
-set target_utilization 0.5
-set slot_width_limit 1050.0 
+set target_utilization 0.63
+set slot_width_limit 1000.0 
 set external_gap 15.0
 
 set macro_width [expr {$slot_width_limit - (2 * $external_gap)}]
@@ -110,6 +110,9 @@ create_tap_cells -lib_cell $TAP_CELL -pattern stagger -distance 39.72
 save_block -as floorplan_pre_pg
 
 source [file dirname [info script]]/common/power_grid.tcl
+
+set ACTIVE_STEP "02_floorplan"
+source [file dirname [info script]]/common/reporting.tcl
 
 save_block -as floorplan
 print_message_info -ids * -summary

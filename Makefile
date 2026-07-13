@@ -13,6 +13,7 @@ SHELL := /bin/bash
 TOP                := croc_chip
 WORK_DIR           := work
 LOGS_DIR           := logs
+REPORTS_DIR        := reports
 REPO_DIR           := $(shell pwd)
 
 .DEFAULT_GOAL := help
@@ -34,7 +35,8 @@ gui_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
 $(WORK_DIR)/design.dlib/$2: $3 $1
-	mkdir -p $(WORK_DIR) $(LOGS_DIR) && cd $(WORK_DIR) && set -o pipefail; fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
+	mkdir -p $(WORK_DIR) $(LOGS_DIR) $(REPORTS_DIR)/$2 && cd $(WORK_DIR) && set -o pipefail; \
+	fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
 endef
 
 TCL_FILES = $(sort $(wildcard scripts/0*_*.tcl))
@@ -58,8 +60,8 @@ all: $(DEPENDENCY)
 # ------------------------------------------------------------------------------
 .PHONY: clean distclean
 clean:
-	rm -rf $(WORK_DIR) $(LOGS_DIR)
-	@echo "Cleaned work and logs directories."
+	rm -rf $(WORK_DIR) $(LOGS_DIR) $(REPORTS_DIR)
+	@echo "Cleaned work, logs, and reports directories."
 
 # ------------------------------------------------------------------------------
 # Help Menu
@@ -71,7 +73,7 @@ help:
 	@echo "================================================================"
 	@echo "Main Targets:"
 	@echo "  make all        – Run all available Fusion Compiler steps sequentially"
-	@echo "  make clean      – Delete the 'work' directory and all generated logs"
+	@echo "  make clean      – Delete the 'work', 'logs', and 'reports' directories"
 	@echo ""
 	@echo "Individual Steps (dynamically generated from scripts/):"
 	@echo "  make read_rtl"
@@ -82,6 +84,6 @@ help:
 	@echo "  make finish"
 	@echo ""
 	@echo "GUI / Interactive Commands:"
-	@echo "  make open_<step> – Open a specific block in terminal mode (e.g., make open_floorplan)"
-	@echo "  make gui_<step>  – Open a specific block in GUI mode (e.g., make gui_floorplan)"
+	@echo "  make open_<step> – Open a specific block in terminal mode"
+	@echo "  make gui_<step>  – Open a specific block in GUI mode"
 	@echo "================================================================"
