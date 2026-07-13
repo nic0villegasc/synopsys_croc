@@ -26,18 +26,19 @@ puts "INFO: Running targeted metrics for $ACTIVE_STEP..."
 switch $ACTIVE_STEP {
 
     "01_read_rtl" {
-        redirect -file ${REPORT_DIR}/check_design.rpt { check_design }
+        redirect -file ${REPORT_DIR}/check_design.rpt { check_design -checks netlist }
         redirect -file ${REPORT_DIR}/report_unbound.rpt { check_design -checks unbound }
         redirect -file ${REPORT_DIR}/check_timing.rpt { check_timing }
     }
 
     "02_floorplan" {
-        # PG checks use their native file-output arguments per the man pages
         check_pg_drc -no_gui -output ${REPORT_DIR}/check_pg_drc.rpt
         check_pg_connectivity -write_connectivity_file ${REPORT_DIR}/check_pg_connectivity.rpt
         
         redirect -file ${REPORT_DIR}/report_congestion.rpt { report_congestion }
         redirect -file ${REPORT_DIR}/check_legality.rpt { check_legality }
+
+        redirect -file ${REPORT_DIR}/check_pre_placement.rpt { check_design -checks pre_placement_stage }
     }
 
     "03_synthesis" {
@@ -48,12 +49,16 @@ switch $ACTIVE_STEP {
     }
 
     "04_cts" {
+        redirect -file ${REPORT_DIR}/check_pre_cts.rpt { check_design -checks pre_clock_tree_stage }
+
         redirect -file ${REPORT_DIR}/report_clock_qor.rpt { report_clock_qor }
         redirect -file ${REPORT_DIR}/check_clock_trees.rpt { check_clock_trees }
         redirect -file ${REPORT_DIR}/report_clock_timing.rpt { report_clock_timing -type skew }
     }
 
     "05_route" {
+        redirect -file ${REPORT_DIR}/check_pre_route.rpt { check_design -checks pre_route_stage }
+
         redirect -file ${REPORT_DIR}/check_routes.rpt { check_routes }
         redirect -file ${REPORT_DIR}/report_wirelength.rpt { report_wirelength }
         redirect -file ${REPORT_DIR}/report_design_routing.rpt { report_design -routing }

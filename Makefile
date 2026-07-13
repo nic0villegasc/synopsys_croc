@@ -35,7 +35,7 @@ gui_$2: $(WORK_DIR)/design.dlib/$2
 	cd $(WORK_DIR) && fc_shell -gui -f ../scripts/common/setup.tcl -x "open_lib design.dlib; open_block $2"
 
 $(WORK_DIR)/design.dlib/$2: $3 $1
-	mkdir -p $(WORK_DIR) $(LOGS_DIR) $(REPORTS_DIR)/$2 && cd $(WORK_DIR) && set -o pipefail; \
+	mkdir -p $(WORK_DIR) $(LOGS_DIR) $(REPORTS_DIR)/$(basename $(notdir $1)) && cd $(WORK_DIR) && set -o pipefail; \
 	fc_shell -batch -f ../$1 | tee ../$(LOGS_DIR)/$2.log
 endef
 
