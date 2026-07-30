@@ -28,7 +28,7 @@ initialize_floorplan \
     -control_type die \
     -shape R \
     -side_length "$macro_width $macro_height" \
-    -core_offset 2.0
+    -core_offset 25.0
 
 compile_fusion -to initial_map
 check_design_states -verbose
@@ -109,8 +109,8 @@ compile_targeted_boundary_cells -all_targets
 
 set_app_options -name place.legalize.enable_advanced_legalizer -value true
 
-# distance according to design rule LU.4: 15um
-create_tap_cells -lib_cell $TAP_CELL -pattern stagger -distance 39.72
+# in-row worst case = distance/2; keep < 15um (DF.13/DF.14, LU.1-4)
+create_tap_cells -lib_cell $TAP_CELL -pattern stagger -distance 28
 
 save_block -as floorplan_pre_pg
 

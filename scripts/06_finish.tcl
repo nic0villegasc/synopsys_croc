@@ -17,8 +17,11 @@ open_block route
 set DCAP_CELLS [get_object_name [sort_collection -descending [get_lib_cells *mcu${STDCELL_TRACK_SIZE}t5v0__fillcap*] area]]
 set FILL_CELLS [get_object_name [sort_collection -descending [get_lib_cells *mcu${STDCELL_TRACK_SIZE}t5v0__fill_*] area]]
 
-create_stdcell_fillers -lib_cell $DCAP_CELLS -type_utilization {{$DCAP_CELLS} 15}
-create_stdcell_fillers -lib_cell $FILL_CELLS
+create_stdcell_fillers -lib_cells $DCAP_CELLS -type_utilization [list $DCAP_CELLS 20]
+connect_pg_net -automatic
+remove_stdcell_fillers_with_violation
+create_stdcell_fillers -lib_cells $FILL_CELLS
+connect_pg_net -automatic
 
 route_detail -incremental true
 

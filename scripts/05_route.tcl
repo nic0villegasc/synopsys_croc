@@ -11,12 +11,9 @@ source [file dirname [info script]]/common/open_lib.tcl
 
 open_block cts
 
-# We need to add these in here
-# connect_pg_net -net VDD [get_pins -hierarchical  "*/VNW"]
-# connect_pg_net -net VSS [get_pins -hierarchical  "*/VPW"]
-# connect_pg_net
-
 route_auto
+
+route_opt
 
 route_detail -incremental true
 

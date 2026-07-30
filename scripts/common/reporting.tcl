@@ -36,9 +36,6 @@ switch $ACTIVE_STEP {
         check_pg_connectivity -write_connectivity_file ${REPORT_DIR}/check_pg_connectivity.rpt
         
         redirect -file ${REPORT_DIR}/report_congestion.rpt { report_congestion }
-        redirect -file ${REPORT_DIR}/check_legality.rpt { check_legality }
-
-        redirect -file ${REPORT_DIR}/check_pre_placement.rpt { check_design -checks pre_placement_stage }
     }
 
     "03_synthesis" {
@@ -46,6 +43,7 @@ switch $ACTIVE_STEP {
         redirect -file ${REPORT_DIR}/check_legality.rpt { check_legality }
         redirect -file ${REPORT_DIR}/report_constraints.rpt { report_constraints -all_violators }
         redirect -file ${REPORT_DIR}/report_timing_worst.rpt { report_timing -delay_type max -max_paths 50 }
+        redirect -file ${REPORT_DIR}/check_pre_placement.rpt { check_design -checks pre_placement_stage }
     }
 
     "04_cts" {

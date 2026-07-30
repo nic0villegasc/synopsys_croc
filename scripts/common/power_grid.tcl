@@ -86,7 +86,7 @@ set_pg_strategy mesh_strategy_top -core \
 set_pg_strategy_via_rule via_mesh_to_ring -via_rule { \
     {{{strategies: mesh_strategy_top}} \
      {{existing: ring} {layers: { Metal5 Metal4 }} } \
-     {via_master: via_master_mesh_top}} \
+     {via_master: via_master_mesh_top}}
 }
 
 compile_pg -strategies mesh_strategy_top -via_rule via_mesh_to_ring
