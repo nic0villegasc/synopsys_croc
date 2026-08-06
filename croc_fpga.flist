@@ -14,13 +14,9 @@
 #   rtl/tech_cells/gf180/tc_sram.sv  (instantiates the GF180 hard SRAM macro)
 #   rtl/croc_chip.sv                 (ASIC pad ring: gf180mcu_fd_io__* pads)
 # Added vs. croc.flist:
-#   rtl/tech_cells/fpga/tc_clk.sv        (behavioral drop-in)
-#   rtl/tech_cells/fpga/tc_sram.sv       (behavioral drop-in, infers Block RAM)
-#   rtl/fpga/default_nettype_reset.vh    (undoes qqspi.v's `default_nettype none
-#                                          before obi_qspi.sv -- Vivado's read_verilog
-#                                          treats the whole flist as one compilation
-#                                          unit, so the directive otherwise leaks)
-#   rtl/fpga/croc_zedboard_top.sv        (new top: MMCM, reset sync, IOBUFs)
+#   rtl/tech_cells/fpga/tc_clk.sv    (behavioral drop-in)
+#   rtl/tech_cells/fpga/tc_sram.sv   (behavioral drop-in, infers Block RAM)
+#   rtl/fpga/croc_zedboard_top.sv    (new top: MMCM, reset sync, IOBUFs)
 
 +incdir+rtl/apb/include
 +incdir+rtl/common_cells/include
@@ -192,7 +188,6 @@ rtl/croc_soc.sv
 
 // ---- obi_qspi ----
 rtl/obi_qspi/qqspi.v
-rtl/fpga/default_nettype_reset.vh
 rtl/obi_qspi/obi_qspi.sv
 
 // ---- FPGA top level ----
