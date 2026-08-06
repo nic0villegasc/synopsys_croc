@@ -25,6 +25,13 @@ create_clock -period 10.000 -name clk_100mhz [get_ports clk_100mhz_i]
 create_clock -period 100.000 -name jtag_tck [get_ports jtag_tck_i]
 set_clock_groups -asynchronous -group [get_clocks -include_generated_clocks clk_100mhz] -group [get_clocks jtag_tck]
 
+## jtag_tck_i lands on an ordinary Pmod pin (JA1), not a clock-capable pin
+## wired to a BUFG via dedicated routing. It directly clocks the JTAG TAP's
+## flip-flops, so Vivado still buffers it onto a BUFG -- but the placer then
+## refuses the non-dedicated IO->BUFG route by default. At ~10 MHz this is
+## fine; this is Xilinx's own documented override for exactly this case.
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets jtag_tck_i_IBUF]
+
 ## ------------------------------------------------------------------
 ## Reset -- center pushbutton (active-high on ZedBoard)
 ## ------------------------------------------------------------------
@@ -85,8 +92,10 @@ set_property PACKAGE_PIN U22 [get_ports led2_o]
 set_property IOSTANDARD LVCMOS33 [get_ports led2_o]
 
 ## ------------------------------------------------------------------
-## Config / bitstream options (safe defaults for the ZedBoard's SPI flash)
+## Config options
+## (No BITSTREAM.CONFIG.SPI_BUSWIDTH here: that property only applies to
+##  standalone 7-series parts booting from external SPI flash. This is a
+##  Zynq PL bitstream, loaded by the PS over PCAP, not a config source.)
 ## ------------------------------------------------------------------
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 set_property CFGBVS VCCO [current_design]
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
