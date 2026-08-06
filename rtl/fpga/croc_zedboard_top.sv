@@ -1,8 +1,8 @@
 // FPGA top level for instantiating croc_soc in the ZedBoard's Zynq-7000 PL.
 //
 // Wraps croc_soc (the technology-independent SoC core -- NOT croc_chip,
-// whose pad ring is built from GF180MCU IO cells and does not exist on
-// Xilinx parts) with:
+// whose pad ring is built from ASIC-specific IO cells and does not exist
+// on Xilinx parts) with:
 //   - an MMCM that derives the 20 MHz system clock croc was closed at
 //     (see scripts/common/mode_func.tcl, CLOCK_PERIOD = 50.0 ns) from the
 //     ZedBoard's onboard 100 MHz oscillator (GCLK, pin Y9)
@@ -162,7 +162,6 @@ module croc_zedboard_top (
     .rst_ni         ( rst_ni       ),
     .ref_clk_i      ( clk_20mhz    ),  // not used as a clock in this netlist today
     .testmode_i     ( 1'b0         ),
-    .fetch_en_i     ( 1'b1         ),  // start fetching as soon as reset releases
     .status_o       ( status       ),
 
     .jtag_tck_i     ( jtag_tck_i   ),

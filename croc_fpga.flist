@@ -1,40 +1,26 @@
-# Copyright (c) 2025 ETH Zurich and University of Bologna.
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
-# SPDX-License-Identifier: Apache-2.0
+# Croc SoC - FPGA (ZedBoard / Zynq-7000 PL) flist
+# Derived directly from croc_sim.flist (the source of truth for the current
+# RTL) by: dropping simulation-only sources (VIP/testbench, clk_rst_gen),
+# swapping the generic behavioral tech cells for the Xilinx XPM/UNISIM ones,
+# and appending the ZedBoard top-level wrapper.
 #
-# FPGA (ZedBoard / Zynq-7000 PL) source list.
-# Reconciled with croc_sim.flist so the shared RTL (croc_pkg, croc_domain,
-# user_domain, croc_soc, core_wrap, ...) matches the updated design. Only the
-# target-specific pieces differ from the sim flist:
-#
-#   Simulation-only sources dropped for FPGA:
-#     rtl/common_verification/clk_rst_gen.sv        (sim clk/rst driver)
-#     rtl/tech_cells_generic/tc_sram.sv             (generic behavioral SRAM)
-#     rtl/tech_cells_generic/tc_sram_impl.sv        (generic behavioral SRAM)
-#     rtl/tech_cells_generic/tc_clk.sv              (generic behavioral clk)
-#     rtl/riscv-dbg/tb/jtag_test_simple.sv          (sim JTAG/DMI VIP)
-#     rtl/test/tb_croc_pkg.sv                       (testbench)
-#     rtl/test/croc_vip.sv                          (testbench VIP)
-#     rtl/test/tb_croc_soc.sv                       (testbench top)
-#
-#   FPGA-specific sources added in their place:
-#     rtl/tech_cells/fpga/tc_clk.sv                 (behavioral drop-in)
-#     rtl/tech_cells/fpga/tc_sram.sv               (behavioral drop-in, infers Block RAM)
-#     rtl/fpga/croc_zedboard_top.sv                 (FPGA top: MMCM, reset sync, IOBUFs)
-#
-# Design changes picked up from the updated sim flist:
-#   + obi_uart/*         (replaces the old apb_uart/* + register_interface/*)
-#   + clint/* , obi_timer/*  (replace the old timer_unit/*)
-#   + idma/*             (new iDMA)
-#   + bootrom.sv
-#   + obi/apb_to_obi.sv, obi/obi_to_apb.sv, obi/obi_cut.sv
-#   + cve2/cve2_branch_predict.sv
-#   + common_cells: heaviside, ring_buffer, boxcar, trip_counter
-#   ~ soc_ctrl_reg_pkg/soc_ctrl_reg_top  ->  soc_ctrl_regs_pkg/soc_ctrl_regs
-#   - register_interface/* dropped (sim no longer lists it; the updated
-#     gpio_reg_top / soc_ctrl_regs no longer depend on it). If your FPGA build
-#     errors on a missing prim_subreg*/reg_intf, re-add rtl/register_interface/*
-#     and the +incdir+rtl/register_interface/include line below.
+# Removed vs. croc_sim.flist:
+#   rtl/common_verification/clk_rst_gen.sv   (tb-only clock/reset generator;
+#                                              croc_zedboard_top.sv provides
+#                                              its own MMCM + reset sync)
+#   rtl/tech_cells_generic/tc_sram.sv         (behavioral SRAM model)
+#   rtl/tech_cells_generic/tc_clk.sv          (behavioral clock cells)
+#   rtl/riscv-dbg/tb/jtag_test_simple.sv      (JTAG/DMI simulation VIP)
+#   rtl/test/tb_croc_pkg.sv                   (testbench)
+#   rtl/test/croc_vip.sv                      (testbench)
+#   rtl/test/tb_croc_soc.sv                   (testbench, top for sim)
+# Added vs. croc_sim.flist:
+#   rtl/tech_cells_generic/fpga/tc_sram_xilinx.sv  (tc_sram via XPM memory macros)
+#   rtl/tech_cells_generic/fpga/tc_clk_xilinx.sv   (tc_clk_* via BUFGMUX/passthrough)
+#   rtl/fpga/croc_zedboard_top.sv                  (new top: MMCM, reset sync, IOBUFs)
+# tc_sram_impl.sv is unchanged -- it just wraps whichever `tc_sram` module is
+# in the compile, so pointing the flist at the Xilinx tc_sram.sv is a
+# drop-in swap; croc_domain.sv itself needs no changes.
 
 # ---- include dirs ----
 +incdir+rtl/apb/include
@@ -43,15 +29,18 @@
 +incdir+rtl/idma/include
 +incdir+rtl/obi/include
 
-# ---- defines (FPGA) ----
+# ---- defines ----
++define+TARGET_FLIST
++define+TARGET_RTL
++define+TARGET_SYNTHESIS
 +define+TARGET_FPGA
 +define+TARGET_VIVADO
-+define+SYNTHESIS=1
 +define+COMMON_CELLS_ASSERTS_OFF=1
 
-# ---- FPGA behavioral tech cells (replace tech_cells_generic + clk_rst_gen) ----
-rtl/tech_cells/fpga/tc_clk.sv
-rtl/tech_cells/fpga/tc_sram.sv
+# ---- generic tech cells (Xilinx variants) ----
+rtl/tech_cells_generic/fpga/tc_sram_xilinx.sv
+rtl/tech_cells_generic/tc_sram_impl.sv
+rtl/tech_cells_generic/fpga/tc_clk_xilinx.sv
 
 # ---- common_cells ----
 rtl/common_cells/binary_to_gray.sv
@@ -192,7 +181,7 @@ rtl/idma/idma_legalizer_rw_obi.sv
 rtl/idma/idma_backend_rw_obi.sv
 rtl/idma/croc_idma.sv
 
-# ---- obi_uart (replaces apb_uart + register_interface) ----
+# ---- obi_uart ----
 rtl/obi_uart/obi_uart_pkg.sv
 rtl/obi_uart/obi_uart_baudgen.sv
 rtl/obi_uart/obi_uart_interrupts.sv
@@ -206,7 +195,7 @@ rtl/obi_uart/obi_uart.sv
 rtl/obi_qspi/qqspi.v
 rtl/obi_qspi/obi_qspi.sv
 
-# ---- riscv-dbg (synthesizable RTL, no sim VIP) ----
+# ---- riscv-dbg (synthesizable RTL) ----
 rtl/riscv-dbg/dm_pkg.sv
 rtl/riscv-dbg/debug_rom/debug_rom.sv
 rtl/riscv-dbg/debug_rom/debug_rom_one_scratch.sv
