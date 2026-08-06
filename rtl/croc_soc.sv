@@ -6,7 +6,7 @@
 // - Philippe Sauter <phsauter@iis.ee.ethz.ch>
 
 module croc_soc import croc_pkg::*; #(
-  parameter int unsigned GpioCount = 16
+  parameter int unsigned GpioCount = 2
 ) (
   input  logic clk_i,
   input  logic rst_ni,
