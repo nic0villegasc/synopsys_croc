@@ -9,6 +9,14 @@
 // be off by ~3 orders of magnitude there. mcycle counts actual core clock
 // cycles, so this delay is accurate on both the Verilator sim (20 MHz) and
 // the FPGA (20 MHz via the MMCM) without depending on that assumption.
+//
+// Deliberately NOT using util.h's get_mcycle(): on RV32 it binds a uint64_t
+// to a single-register "csrr %0, mcycle", which only ever writes the low
+// half of the register pair GCC allocates for it -- the high half is
+// whatever garbage was already there. Comparing two such reads can produce
+// a bogus "elapsed" value and hang forever. A 500 ms delay never needs
+// mcycleh anyway (that only matters past ~214s of uptime at 20 MHz), so
+// read the 32-bit mcycle CSR directly and avoid the issue entirely.
 
 #include "gpio.h"
 #include "util.h"
@@ -16,10 +24,16 @@
 
 #define LED_PIN 0
 
+static inline uint32_t get_mcycle32(void) {
+    uint32_t val;
+    asm volatile("csrr %0, mcycle" : "=r"(val));
+    return val;
+}
+
 static void delay_ms(uint32_t ms) {
-    uint64_t cycles = ((uint64_t)TB_FREQUENCY / 1000) * ms;
-    uint64_t start  = get_mcycle();
-    while ((get_mcycle() - start) < cycles) { }
+    uint32_t cycles = (TB_FREQUENCY / 1000) * ms;
+    uint32_t start  = get_mcycle32();
+    while ((get_mcycle32() - start) < cycles) { }
 }
 
 int main() {
