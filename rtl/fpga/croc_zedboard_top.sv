@@ -18,8 +18,8 @@
 //   UART          -> Pmod JB (tx on JB1, rx on JB2)
 //   QSPI          -> Pmod JC (clk/csn on JC1_P/JC1_N/JC2_P/JC2_N,
 //                              sd[3:0] on JC3_P/JC3_N/JC4_P/JC4_N)
-//   GPIO[3:0]     -> SW0-SW3   (wire these as inputs in software)
-//   GPIO[6:4]     -> LD0/LD1/LD7 (wire these as outputs in software)
+//   GPIO[1:0]     -> LD0/LD1 (croc_soc's GpioCount default is now 2 -- wire
+//                             these as outputs in software, e.g. for blink.c)
 //   status_o      -> LD2 (bonus "core busy" indicator, not requested but
 //                          free -- remove if LD2 is needed for something else)
 
@@ -45,15 +45,14 @@ module croc_zedboard_top (
   output wire [2:0] qspi_csn_o,
   inout  wire [3:0] qspi_sd_io,
 
-  // GPIO -- switches (in) and LEDs (out)
-  inout  wire [3:0] sw_io,   // SW0, SW1, SW2, SW3
-  inout  wire [2:0] led_io,  // LD0, LD1, LD7
+  // GPIO -- LEDs (croc_soc's GpioCount is 2, so only two pins available)
+  inout  wire [1:0] led_io,  // LD0, LD1
 
   // Bonus core-alive indicator
   output wire led2_o
 );
 
-  localparam int unsigned GpioCount = 7;
+  localparam int unsigned GpioCount = 2;
 
   // ---------------------------------------------------------------------
   // Clock generation: 100 MHz onboard osc -> 20 MHz croc system clock
@@ -112,26 +111,16 @@ module croc_zedboard_top (
   // ---------------------------------------------------------------------
   // GPIO tri-state buffers
   //   bit convention (matches croc_soc gpio_out_en_o): 0 = input, 1 = output
-  //   [3:0] -> switches (leave as inputs in software)
-  //   [6:4] -> LEDs     (drive as outputs in software)
+  //   [1:0] -> LEDs LD0/LD1 (drive as outputs in software)
   // ---------------------------------------------------------------------
   logic [GpioCount-1:0] gpio_i, gpio_o, gpio_out_en;
 
-  for (genvar i = 0; i < 4; i++) begin : gen_iobuf_sw
-    IOBUF i_iobuf_sw (
+  for (genvar i = 0; i < GpioCount; i++) begin : gen_iobuf_led
+    IOBUF i_iobuf_led (
       .O  ( gpio_i[i]        ),
-      .IO ( sw_io[i]         ),
+      .IO ( led_io[i]        ),
       .I  ( gpio_o[i]        ),
       .T  ( ~gpio_out_en[i]  )
-    );
-  end
-
-  for (genvar i = 0; i < 3; i++) begin : gen_iobuf_led
-    IOBUF i_iobuf_led (
-      .O  ( gpio_i[4+i]        ),
-      .IO ( led_io[i]          ),
-      .I  ( gpio_o[4+i]        ),
-      .T  ( ~gpio_out_en[4+i]  )
     );
   end
 

@@ -50,6 +50,14 @@ module croc_domain import croc_pkg::*; #(
   logic debug_req;
   logic fetch_enable;
 
+  // Debug-module-triggered system reset (e.g. OpenOCD `reset halt`).
+  // Everything except the debug module and the JTAG DTM resets on this --
+  // per the RISC-V debug spec, ndmreset must not be able to reset the very
+  // module that controls it, or the debugger loses its own target.
+  logic ndmreset;
+  logic sys_rst_n;
+  assign sys_rst_n = rst_ni & ~ndmreset;
+
   // interrupts (irqs)
   logic clint_timer_irq;
   logic clint_software_irq;
@@ -220,7 +228,7 @@ module croc_domain import croc_pkg::*; #(
   core_wrap #(
   ) i_core_wrap (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .test_enable_i  ( testmode_i  ),
 
     .irqs_i         ( interrupts         ),
@@ -269,7 +277,7 @@ module croc_domain import croc_pkg::*; #(
       .obi_sbr_rsp_t    ( sbr_obi_rsp_t       )
     ) i_croc_idma (
       .clk_i,
-      .rst_ni,
+      .rst_ni ( sys_rst_n ),
       .obi_cfg_req_i    ( idma_obi_cfg_req    ),
       .obi_cfg_rsp_o    ( idma_obi_cfg_rsp    ),
       .obi_read_req_o   ( idma_obi_read_req   ),
@@ -301,7 +309,7 @@ module croc_domain import croc_pkg::*; #(
       .RspData     ( 32'hBADCAB1E  )
     ) i_obi_err_sbr_idma_cfg (
       .clk_i,
-      .rst_ni,
+      .rst_ni ( sys_rst_n ),
       .testmode_i,
       .obi_req_i  ( idma_obi_cfg_req ),
       .obi_rsp_o  ( idma_obi_cfg_rsp )
@@ -332,7 +340,7 @@ module croc_domain import croc_pkg::*; #(
     .IdcodeValue ( PulpJtagIdCode )
   ) i_dmi_jtag (
     .clk_i,
-    .rst_ni,
+    .rst_ni,        // external reset only -- must survive the DM's own ndmreset
     .testmode_i,
 
     .dmi_rst_no       ( dmi_rst_n      ),
@@ -357,9 +365,9 @@ module croc_domain import croc_pkg::*; #(
     .IdWidth    ( SbrObiCfg.IdWidth   )
   ) i_dm_top (
     .clk_i,
-    .rst_ni,
+    .rst_ni,        // external reset only -- must survive its own ndmreset_o
     .testmode_i,
-    .ndmreset_o         (),
+    .ndmreset_o         ( ndmreset ),
     .dmactive_o         (),
     .debug_req_o        ( debug_req  ),
     .unavailable_i      ( 1'b0       ),
@@ -422,7 +430,7 @@ module croc_domain import croc_pkg::*; #(
     .Connectivity       ( XbarConnectivity     )
   ) i_main_xbar (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .testmode_i,
 
     // connections between managers and crossbar
@@ -455,7 +463,7 @@ module croc_domain import croc_pkg::*; #(
       .obi_rsp_t ( sbr_obi_rsp_t )
     ) i_sram_shim (
       .clk_i,
-      .rst_ni,
+      .rst_ni ( sys_rst_n ),
 
       .obi_req_i ( xbar_mem_bank_obi_req[i] ),
       .obi_rsp_o ( xbar_mem_bank_obi_rsp[i] ),
@@ -479,7 +487,7 @@ module croc_domain import croc_pkg::*; #(
       .Latency   (  1 )
     ) i_sram (
       .clk_i,
-      .rst_ni,
+      .rst_ni ( sys_rst_n ),
 
       .impl_i  ( sram_impl      ),
       .impl_o  (),
@@ -506,7 +514,7 @@ module croc_domain import croc_pkg::*; #(
     .RspData     ( 32'hBADCAB1E  )
   ) i_xbar_err (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .testmode_i,
     .obi_req_i  ( xbar_error_obi_req ),
     .obi_rsp_o  ( xbar_error_obi_rsp )
@@ -544,7 +552,7 @@ module croc_domain import croc_pkg::*; #(
     .NumMaxTrans ( 2             )
   ) i_obi_demux (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
 
     .sbr_port_select_i ( periph_idx          ),
     .sbr_port_req_i    ( xbar_periph_obi_req ),
@@ -561,7 +569,7 @@ module croc_domain import croc_pkg::*; #(
     .BootAddrDefault ( BootAddr      )
   ) i_soc_ctrl (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .obi_req_i  ( soc_ctrl_obi_req ),
     .obi_rsp_o  ( soc_ctrl_obi_rsp ),
     .fetch_en_o ( fetch_enable     ),
@@ -575,7 +583,7 @@ module croc_domain import croc_pkg::*; #(
     .obi_rsp_t ( sbr_obi_rsp_t )
   ) i_uart (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
 
     .obi_req_i ( uart_obi_req ),
     .obi_rsp_o ( uart_obi_rsp ),
@@ -604,7 +612,7 @@ module croc_domain import croc_pkg::*; #(
     .GpioCount ( GpioCount     )
   ) i_gpio (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .gpio_i,
     .gpio_o,
     .gpio_out_en_o,
@@ -620,7 +628,7 @@ module croc_domain import croc_pkg::*; #(
     .obi_rsp_t ( sbr_obi_rsp_t )
   ) i_clint (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .rtc_i          ( ref_clk_i          ),
     .software_irq_o ( clint_software_irq ),
     .timer_irq_o    ( clint_timer_irq    ),
@@ -634,7 +642,7 @@ module croc_domain import croc_pkg::*; #(
     .obi_rsp_t ( sbr_obi_rsp_t )
   ) i_obi_timer (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .obi_req_i  ( timer_obi_req ),
     .obi_rsp_o  ( timer_obi_rsp ),
     .expired_o  ( obi_timer_irq ),
@@ -648,7 +656,7 @@ module croc_domain import croc_pkg::*; #(
     .obi_rsp_t ( sbr_obi_rsp_t )
   ) i_bootrom (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .obi_req_i ( bootrom_obi_req ),
     .obi_rsp_o ( bootrom_obi_rsp )
   );
@@ -662,7 +670,7 @@ module croc_domain import croc_pkg::*; #(
     .RspData     ( 32'hBADCAB1E  )
   ) i_periph_err (
     .clk_i,
-    .rst_ni,
+    .rst_ni ( sys_rst_n ),
     .testmode_i,
     .obi_req_i   ( error_obi_req ),
     .obi_rsp_o   ( error_obi_rsp )

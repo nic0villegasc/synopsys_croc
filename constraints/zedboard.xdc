@@ -75,17 +75,11 @@ set_property PACKAGE_PIN U4  [get_ports {qspi_sd_io[3]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {qspi_clk_o qspi_csn_o[*] qspi_sd_io[*]}]
 
 ## ------------------------------------------------------------------
-## GPIO -> switches (bank 35, inputs) and LEDs (bank 33, outputs)
+## GPIO -> LEDs (bank 33). croc_soc's GpioCount is now 2, so only LD0/LD1
+## are wired to the GPIO peripheral (e.g. for blink.c).
 ## ------------------------------------------------------------------
-set_property PACKAGE_PIN F22 [get_ports {sw_io[0]}]
-set_property PACKAGE_PIN G22 [get_ports {sw_io[1]}]
-set_property PACKAGE_PIN H22 [get_ports {sw_io[2]}]
-set_property PACKAGE_PIN F21 [get_ports {sw_io[3]}]
-set_property IOSTANDARD LVCMOS18 [get_ports {sw_io[*]}]
-
 set_property PACKAGE_PIN T22 [get_ports {led_io[0]}]
 set_property PACKAGE_PIN T21 [get_ports {led_io[1]}]
-set_property PACKAGE_PIN U14 [get_ports {led_io[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {led_io[*]}]
 
 set_property PACKAGE_PIN U22 [get_ports led2_o]
