@@ -63,15 +63,25 @@ set_property IOSTANDARD LVCMOS33 [get_ports {uart_tx_o uart_rx_i}]
 
 ## ------------------------------------------------------------------
 ## QSPI -> Pmod JC (bank 13)
+##
+## Matches the TinyTapeout/mole99 QSPI flash Pmod board's own pin order
+## (CS0, SD0/MOSI, SD1/MISO, SCK, SD2, SD3, CS1, CS2 across physical pins
+## 1,2,3,4,7,8,9,10 -- see github.com/mole99/qspi-pmod), which is also
+## exactly what the flasher itself reported: CS=1 DI=2 DO=3 CLK=4 WP=5
+## HOLD/RESET=6. Physical pin -> JCn_P/N follows Digilent's standard
+## sequential convention: pin1=JC1_P, pin2=JC1_N, pin3=JC2_P, pin4=JC2_N,
+## pin7=JC3_P, pin8=JC3_N, pin9=JC4_P, pin10=JC4_N.
+## qspi_csn_o[1]/[2] (RAM A/B chip selects) land on pins 9/10 -- unused,
+## no PSRAM chip populated on this Pmod.
 ## ------------------------------------------------------------------
-set_property PACKAGE_PIN AB7 [get_ports qspi_clk_o]
-set_property PACKAGE_PIN AB6 [get_ports {qspi_csn_o[0]}]
-set_property PACKAGE_PIN Y4  [get_ports {qspi_csn_o[1]}]
-set_property PACKAGE_PIN AA4 [get_ports {qspi_csn_o[2]}]
-set_property PACKAGE_PIN R6  [get_ports {qspi_sd_io[0]}]
-set_property PACKAGE_PIN T6  [get_ports {qspi_sd_io[1]}]
-set_property PACKAGE_PIN T4  [get_ports {qspi_sd_io[2]}]
-set_property PACKAGE_PIN U4  [get_ports {qspi_sd_io[3]}]
+set_property PACKAGE_PIN AB7 [get_ports {qspi_csn_o[0]}]  ; # pin1 JC1_P: CS0 (flash)
+set_property PACKAGE_PIN AB6 [get_ports {qspi_sd_io[0]}]  ; # pin2 JC1_N: SD0 / MOSI / DI
+set_property PACKAGE_PIN Y4  [get_ports {qspi_sd_io[1]}]  ; # pin3 JC2_P: SD1 / MISO / DO
+set_property PACKAGE_PIN AA4 [get_ports qspi_clk_o]       ; # pin4 JC2_N: SCK / CLK
+set_property PACKAGE_PIN R6  [get_ports {qspi_sd_io[2]}]  ; # pin7 JC3_P: SD2 / WP
+set_property PACKAGE_PIN T6  [get_ports {qspi_sd_io[3]}]  ; # pin8 JC3_N: SD3 / HOLD or RESET
+set_property PACKAGE_PIN T4  [get_ports {qspi_csn_o[1]}]  ; # pin9 JC4_P: CS1 (RAM A, unused)
+set_property PACKAGE_PIN U4  [get_ports {qspi_csn_o[2]}]  ; # pin10 JC4_N: CS2 (RAM B, unused)
 set_property IOSTANDARD LVCMOS33 [get_ports {qspi_clk_o qspi_csn_o[*] qspi_sd_io[*]}]
 
 ## ------------------------------------------------------------------
